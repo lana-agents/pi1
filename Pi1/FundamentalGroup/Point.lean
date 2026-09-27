@@ -10,6 +10,20 @@ public import Mathlib.CategoryTheory.Galois.IsFundamentalgroup
 public import Mathlib.FieldTheory.Galois.Profinite
 public import Mathlib.FieldTheory.IntermediateField.Adjoin.Algebra
 
+/-!
+# The étale fundamental group of a point
+
+Let `k` be a field and `K` a separable closure of `k`. We show that the absolute Galois group
+`Gal(K/k)` is a fundamental group for the fiber functor of `FiniteEtale (Spec k)` at the
+geometric point `Spec K ⟶ Spec k` (`AlgebraicGeometry.FiniteEtale.isFundamentalGroup`).
+In particular, `π₁ᵉᵗ(Spec k)` is isomorphic to `Gal(K/k)` as a topological group
+(`AlgebraicGeometry.FiniteEtale.mulEquivAutFiber`).
+
+Along the way we show that for a separably closed field `Ω` and a geometric point
+`ξ : Spec Ω ⟶ S`, the fiber functor at `ξ` is isomorphic to `X ↦ Hom_S(Spec Ω, X)`
+(`AlgebraicGeometry.FiniteEtale.fiberIsoCoyoneda`).
+-/
+
 @[expose] public section
 
 universe u
@@ -71,40 +85,27 @@ section
 
 variable {k K : Type*} [Field k] [Field K] [Algebra k K]
 
-instance (L : Type*) [Field L] [Algebra k L] : MulAction (K ≃ₐ[k] K) (L →ₐ[k] K) where
+instance (A : Type*) [Semiring A] [Algebra k A] : MulAction (K ≃ₐ[k] K) (A →ₐ[k] K) where
   smul g x := (g : _ →ₐ[k] _).comp x
   one_smul _ := rfl
   mul_smul _ _ _ := rfl
 
---instance (L : Type*) [Field L] [Algebra k L] :
---    letI : TopologicalSpace (L →ₐ[k] K) := ⊥
---    ContinuousSMul (K ≃ₐ[k] K) (L →ₐ[k] K) := by
---  letI : TopologicalSpace (L →ₐ[k] K) := ⊥
---  constructor
---  sorry
-
-lemma AlgEquiv.smul_algHom_def (L : Type*) [Field L] [Algebra k L]
-    (g : K ≃ₐ[k] K) (x : L →ₐ[k] K) :
+lemma AlgEquiv.smul_algHom_def (A : Type*) [Semiring A] [Algebra k A]
+    (g : K ≃ₐ[k] K) (x : A →ₐ[k] K) :
     g • x = (g : _ →ₐ[k] _).comp x :=
   rfl
 
-instance (L : Type*) [Field L] [Algebra k L] [Algebra L K] [IsScalarTower k L K] [Normal k L]
-    [Normal k K] :
+/-- If `K/k` is normal, the automorphism group of `K/k` acts transitively on the
+`k`-embeddings of a field `L` into `K`. -/
+instance (L : Type*) [Field L] [Algebra k L] [Normal k K] :
     MulAction.IsPretransitive (K ≃ₐ[k] K) (L →ₐ[k] K) := by
   constructor
   intro x y
-  obtain ⟨σx, (hx : σx.restrictNormal _ = _)⟩ :=
-    AlgEquiv.restrictNormalHom_surjective K (x.restrictNormal' L)
-  obtain ⟨σy, (hy : σy.restrictNormal _ = _)⟩ :=
-    AlgEquiv.restrictNormalHom_surjective K (y.restrictNormal' L)
-  use σx.symm.trans σy
-  rw [AlgEquiv.smul_algHom_def]
+  letI : Algebra L K := x.toRingHom.toAlgebra
+  haveI : IsScalarTower k L K := .of_algebraMap_eq fun a ↦ (x.commutes a).symm
+  use AlgEquiv.ofBijective (y.liftNormal K) (AlgHom.normal_bijective k K K _)
   ext a
-  have hy : y a = σy (algebraMap _ _ a) := by
-    simp [← AlgEquiv.restrictNormal_commutes, hy, AlgHom.restrictNormal']
-  have hx : x a = σx (algebraMap _ _ a) := by
-    simp [← AlgEquiv.restrictNormal_commutes, hx, AlgHom.restrictNormal']
-  simp [hx, hy]
+  exact y.liftNormal_commutes K a
 
 end
 
@@ -112,35 +113,93 @@ namespace AlgebraicGeometry
 
 namespace FiniteEtale
 
+instance (X : Scheme.{u}) : IsFiniteEtale (𝟙 X) :=
+  MorphismProperty.id_mem @IsFiniteEtale X
+
+section Fiber
+
 variable {S : Scheme.{u}} {Ω : Type u} [Field Ω] (ξ : Spec (.of Ω) ⟶ S)
 
-def fiberObjEquivHom (X : FiniteEtale S) : (fiber ξ).obj X ≃ (Over.mk ξ ⟶ X.toComma) where
-  toFun x := sorry
-  invFun := sorry
-  left_inv := sorry
-  right_inv := sorry
+/-- Morphisms `Spec Ω ⟶ X` over `S` correspond to sections of the base change of `X` along
+`ξ : Spec Ω ⟶ S`. -/
+noncomputable
+def homEquivHomPullback (X : FiniteEtale S) :
+    (Over.mk ξ ⟶ X.toComma) ≃ (mk (𝟙 (Spec (.of Ω))) ⟶ (pullback ξ).obj X) where
+  toFun x := MorphismProperty.Over.homMk (Limits.pullback.lift x.left (𝟙 _) (by simp)) (by simp)
+  invFun f := Over.homMk (f.left ≫ Limits.pullback.fst _ _) <| by
+    have : f.left ≫ Limits.pullback.snd X.hom ξ = 𝟙 _ := Over.w f.hom
+    simp [Limits.pullback.condition, reassoc_of% this]
+  left_inv x := by ext; simp
+  right_inv f := by
+    apply MorphismProperty.Over.Hom.ext
+    apply Limits.pullback.hom_ext
+    · simp
+    · exact (Limits.pullback.lift_snd _ _ _).trans (Over.w f.hom).symm
+
+variable (Ω) in
+/-- If `Ω` is separably closed, sections of a finite étale `Spec Ω`-scheme `P` correspond
+to points of `P`. -/
+noncomputable
+def homEquivPoints [IsSepClosed Ω] (P : FiniteEtale (Spec (.of Ω))) :
+    (mk (𝟙 (Spec (.of Ω))) ⟶ P) ≃ P.left :=
+  Equiv.ofBijective (fun f ↦ f.left (default : Spec (.of Ω))) <| by
+    constructor
+    · intro f g hfg
+      apply (forgetScheme Ω).map_injective
+      ext x
+      obtain rfl : x = (default : Spec (.of Ω)) := Subsingleton.elim (α := Spec (.of Ω)) _ _
+      exact hfg
+    · intro p
+      obtain ⟨f, hf⟩ := (forgetScheme Ω).map_surjective
+        (FintypeCat.homMk (fun _ ↦ p) :
+          (forgetScheme Ω).obj (mk (𝟙 _)) ⟶ (forgetScheme Ω).obj P)
+      exact ⟨f, congr($hf (default : Spec (.of Ω)))⟩
+
+variable [IsSepClosed Ω]
+
+/-- If `Ω` is separably closed, the fiber of `X` over the geometric point `ξ` is in bijection
+with the `S`-morphisms `Spec Ω ⟶ X`. -/
+noncomputable
+def fiberObjEquivHom (X : FiniteEtale S) : (fiber ξ).obj X ≃ (Over.mk ξ ⟶ X.toComma) :=
+  ((homEquivHomPullback ξ X).trans (homEquivPoints Ω _)).symm
+
+lemma fiberObjEquivHom_symm_apply (X : FiniteEtale S) (x : Over.mk ξ ⟶ X.toComma) :
+    (fiberObjEquivHom ξ X).symm x =
+      Limits.pullback.lift x.left (𝟙 _) (by simp) (default : Spec (.of Ω)) :=
+  rfl
 
 @[simp]
 lemma fiberObjEquivHom_symm_naturality {X Y : FiniteEtale S} (f : X ⟶ Y) (x) :
-    (fiber ξ).map f ((fiberObjEquivHom ξ X).symm x) = (fiberObjEquivHom ξ Y).symm (x ≫ f.hom) :=
-  sorry
+    (fiber ξ).map f ((fiberObjEquivHom ξ X).symm x) = (fiberObjEquivHom ξ Y).symm (x ≫ f.hom) := by
+  rw [fiberObjEquivHom_symm_apply, fiberObjEquivHom_symm_apply]
+  change ((pullback ξ).map f).left _ = _
+  have : Limits.pullback.lift x.left (𝟙 _) (by simp) ≫ ((pullback ξ).map f).left =
+      Limits.pullback.lift (x ≫ f.hom).left (𝟙 _) (by simp) := by
+    apply Limits.pullback.hom_ext <;> simp
+  exact (Scheme.Hom.comp_apply _ _ _).symm.trans congr($this _)
 
 @[reassoc]
 lemma fiberObjEquivHom_naturality {X Y : FiniteEtale S} (f : X ⟶ Y) (x) :
-    (fiberObjEquivHom ξ X x) ≫ f.hom = fiberObjEquivHom ξ Y ((fiber ξ).map f x) :=
-  sorry
+    (fiberObjEquivHom ξ X x) ≫ f.hom = fiberObjEquivHom ξ Y ((fiber ξ).map f x) := by
+  rw [← Equiv.symm_apply_eq, ← fiberObjEquivHom_symm_naturality, Equiv.symm_apply_apply]
 
+/-- If `Ω` is separably closed, the fiber functor at `ξ` is isomorphic to the functor
+`X ↦ Hom(Spec Ω, X)`. -/
 noncomputable
 def fiberIsoCoyoneda :
     fiber ξ ⋙ CategoryTheory.forget FintypeCat ≅ forget _ ⋙ coyoneda.obj ⟨Over.mk ξ⟩ :=
-  NatIso.ofComponents (fun X ↦ (equivEquivIso (fiberObjEquivHom ξ X)))
-  sorry
+  NatIso.ofComponents (fun X ↦ (equivEquivIso (fiberObjEquivHom ξ X))) fun f ↦ by
+    ext x
+    exact (fiberObjEquivHom_naturality ξ f x).symm
+
+end Fiber
+
+variable {S : Scheme.{u}} {Ω : Type u} [Field Ω] (ξ : Spec (.of Ω) ⟶ S)
 
 unif_hint (X : FiniteEtale S) where
   ⊢ (forget S ⋙ coyoneda.obj ⟨Over.mk ξ⟩).obj X ≟ (Over.mk ξ ⟶ X.toComma)
 
-variable (k K Ω : Type u) [Field k] [Field K] [Algebra k K] [Field Ω] [Algebra k Ω]
-  [Algebra K Ω] [IsScalarTower k K Ω]
+variable (k K : Type u) [Field k] [Field K] [Algebra k K]
 
 scoped notation3:arg "fib " k:arg K:arg =>
   FiniteEtale.fiber (Spec.map (CommRingCat.ofHom <| algebraMap k K))
@@ -174,36 +233,7 @@ instance : MulAction (K ≃ₐ[k] K) (Over.mk (ξ k K) ⟶ X.toComma) where
   one_smul x := by ext1; simp [AlgEquiv.aut_one]
   mul_smul g h x := by ext1; simp [AlgEquiv.aut_mul]
 
-scoped instance : TopologicalSpace (Over.mk (ξ k K) ⟶ X.toComma) := ⊥
-
-instance : ContinuousSMul (K ≃ₐ[k] K) (Over.mk (ξ k K) ⟶ X.toComma) where
-  continuous_smul :=
-    sorry
-
-noncomputable
-instance : MulAction (K ≃ₐ[k] K) ((forget _ ⋙ coyoneda.obj ⟨Over.mk (ξ k K)⟩).obj X) :=
-  fast_instance% inferInstanceAs <| MulAction (K ≃ₐ[k] K) (Over.mk (ξ k K) ⟶ X.toComma)
-
-noncomputable
-instance (X : FiniteEtale (Spec (.of k))) : SMul (K ≃ₐ[k] K) ((fib k K).obj X) where
-  smul g x := (fiberIsoCoyoneda (ξ k K)).inv.app X <| g • (((fiberIsoCoyoneda (ξ k K)).hom.app X) x)
-
-lemma algEquiv_smul_fiber_def (g : K ≃ₐ[k] K) (x : (fib k K).obj X) :
-    g • x = (fiberObjEquivHom (ξ k K) X).symm (g • ((fiberObjEquivHom (ξ k K) X) x)) :=
-  rfl
-
-noncomputable
-instance (X : FiniteEtale (Spec (.of k))) : MulAction (K ≃ₐ[k] K) ((fib k K).obj X) where
-  one_smul x := by simp [algEquiv_smul_fiber_def]
-  mul_smul g h x := by simp [algEquiv_smul_fiber_def, mul_smul]
-
-lemma isField_of_isConnected (X : FiniteEtale (Spec (.of k))) [IsConnected X] :
-    IsField Γ(X.left, ⊤) :=
-  sorry
-
-noncomputable instance (X : FiniteEtale (Spec (.of k))) [IsConnected X] : Field Γ(X.left, ⊤) :=
-  (isField_of_isConnected _ X).toField
-
+/-- `Spec K`-valued points of `X` correspond to `k`-algebra maps `Γ(X, ⊤) ⟶ K`. -/
 noncomputable
 def homEquivAlgHom (X : FiniteEtale (Spec (.of k))) :
     (Over.mk (ξ k K) ⟶ X.toComma) ≃ (Γ(X.left, ⊤) →ₐ[k] K) where
@@ -259,7 +289,7 @@ def homEquivAlgHom (X : FiniteEtale (Spec (.of k))) :
       Scheme.toSpecΓ_isoSpec_inv, Scheme.Hom.id_appTop, Category.id_comp]
     simp
 
-lemma homEquivAlgHom_smul (X : FiniteEtale (Spec (.of k))) [IsConnected X] (g : K ≃ₐ[k] K) (x) :
+lemma homEquivAlgHom_smul (X : FiniteEtale (Spec (.of k))) (g : K ≃ₐ[k] K) (x) :
     (homEquivAlgHom k K X) (g • x) = g • (homEquivAlgHom k K X x) := by
   rw [homEquivAlgHom]
   dsimp only [Over.mk_left, AlgHom.toRingHom_eq_coe, Equiv.coe_fn_mk, algEquiv_smul_hom,
@@ -270,20 +300,139 @@ lemma homEquivAlgHom_smul (X : FiniteEtale (Spec (.of k))) [IsConnected X] (g : 
   rw [← ConcreteCategory.comp_apply]
   simp
 
-instance isGalois_of_isGalois (X : FiniteEtale (Spec (.of k))) [IsGalois X] :
-    IsGalois k Γ(X.left, ⊤) :=
-  sorry
+lemma homEquivAlgHom_comp {X Y : FiniteEtale (Spec (.of k))} (f : X ⟶ Y)
+    (x : Over.mk (ξ k K) ⟶ X.toComma) (a : Γ(Y.left, ⊤)) :
+    homEquivAlgHom k K Y (x ≫ f.hom) a = homEquivAlgHom k K X x (f.left.appTop a) := by
+  simp [homEquivAlgHom]
 
-instance [IsGalois k K] (X : FiniteEtale (Spec (.of k))) [IsGalois X] :
+scoped instance : TopologicalSpace (Over.mk (ξ k K) ⟶ X.toComma) := ⊥
+
+instance : DiscreteTopology (Over.mk (ξ k K) ⟶ X.toComma) := ⟨rfl⟩
+
+instance : ContinuousSMul (K ≃ₐ[k] K) (Over.mk (ξ k K) ⟶ X.toComma) := by
+  rw [continuousSMul_iff_stabilizer_isOpen]
+  intro x
+  let φ := homEquivAlgHom k K X x
+  let b := Module.Free.chooseBasis k Γ(X.left, ⊤)
+  let E : IntermediateField k K := IntermediateField.adjoin k (Set.range (φ ∘ b))
+  have : FiniteDimensional k E := by
+    apply IntermediateField.finiteDimensional_adjoin
+    rintro - ⟨i, rfl⟩
+    exact (Algebra.IsIntegral.isIntegral (b i)).map φ
+  refine Subgroup.isOpen_mono (fun g hg ↦ ?_) (IntermediateField.fixingSubgroup_isOpen E)
+  rw [MulAction.mem_stabilizer_iff]
+  apply (homEquivAlgHom k K X).injective
+  rw [homEquivAlgHom_smul]
+  apply AlgHom.toLinearMap_injective
+  apply b.ext
+  intro i
+  exact (IntermediateField.mem_fixingSubgroup_iff E g).mp hg _
+    (IntermediateField.subset_adjoin _ _ ⟨i, rfl⟩)
+
+/-- If `X` is connected, the underlying scheme of `X` has exactly one point. -/
+lemma nonempty_and_subsingleton_of_isConnected [IsConnected X] :
+    Nonempty X.left ∧ Subsingleton X.left := by
+  let Ω : Type u := AlgebraicClosure k
+  let F := fib k Ω
+  refine ⟨?_, ?_⟩
+  · obtain ⟨x⟩ := nonempty_fiber_of_isConnected F X
+    exact ⟨Limits.pullback.fst X.hom _ x⟩
+  · by_contra! h
+    obtain ⟨p, q, hpq⟩ := h
+    have : IsAffine X.left := inferInstance
+    have : DiscreteTopology (Spec Γ(X.left, ⊤)) :=
+      inferInstanceAs (DiscreteTopology (PrimeSpectrum _))
+    have : DiscreteTopology X.left :=
+      X.left.isoSpec.schemeIsoToHomeo.isEmbedding.discreteTopology
+    let U : X.left.Opens := ⟨{p}, isOpen_discrete _⟩
+    have : IsClosedImmersion U.ι := by
+      apply isClosedImmersion_of_isPreimmersion_of_isClosed
+      simp [U]
+    have : IsFiniteEtale U.ι := ⟨⟩
+    have : IsFiniteEtale (U.ι ≫ X.hom) :=
+      MorphismProperty.comp_mem @IsFiniteEtale _ _ ‹_› X.prop
+    let i : mk (U.ι ≫ X.hom) ⟶ X := MorphismProperty.Over.homMk U.ι
+    have : Mono i := (mono_iff _ _ _ i).mpr ⟨inferInstanceAs (IsOpenImmersion U.ι),
+      inferInstanceAs (IsClosedImmersion U.ι)⟩
+    have : IsIso i := by
+      apply IsConnected.noTrivialComponent _ i
+      obtain ⟨z, -, -⟩ := Scheme.Pullback.exists_preimage_pullback (f := U.ι ≫ X.hom)
+        (g := ξ k Ω) (⟨p, rfl⟩ : U) default (Subsingleton.elim (α := Spec (.of k)) _ _)
+      exact not_initial_of_inhabited F (X := mk (U.ι ≫ X.hom)) z
+    have : IsIso U.ι := inferInstanceAs <| IsIso ((forget _ ⋙ Over.forget _).map i)
+    obtain ⟨⟨r, hr⟩, hrq⟩ := U.ι.surjective q
+    simp only [U] at hr
+    simp only [Scheme.Opens.ι_apply] at hrq
+    exact hpq (hr.symm.trans hrq)
+
+lemma isField_of_isConnected [IsConnected X] : IsField Γ(X.left, ⊤) := by
+  obtain ⟨_, _⟩ := nonempty_and_subsingleton_of_isConnected k X
+  have : IsAffine X.left := inferInstance
+  let e : PrimeSpectrum Γ(X.left, ⊤) ≃ X.left :=
+    X.left.isoSpec.schemeIsoToHomeo.symm.toEquiv
+  have : Nonempty (PrimeSpectrum Γ(X.left, ⊤)) := e.nonempty
+  have : Subsingleton (PrimeSpectrum Γ(X.left, ⊤)) := e.subsingleton
+  have : Unique (PrimeSpectrum Γ(X.left, ⊤)) := uniqueOfSubsingleton (Classical.arbitrary _)
+  have : Unique (MaximalSpectrum Γ(X.left, ⊤)) :=
+    IsArtinianRing.primeSpectrumEquivMaximalSpectrum.symm.unique
+  let m : MaximalSpectrum Γ(X.left, ⊤) := default
+  letI : Field (Γ(X.left, ⊤) ⧸ m.asIdeal) := Ideal.Quotient.field _
+  exact MulEquiv.isField (Field.toIsField _)
+    ((IsArtinianRing.equivPi Γ(X.left, ⊤)).toRingEquiv.trans
+      (RingEquiv.piUnique _)).toMulEquiv
+
+noncomputable instance [IsConnected X] : Field Γ(X.left, ⊤) :=
+  (isField_of_isConnected _ X).toField
+
+/-- If `K/k` is normal, `Gal(K/k)` acts transitively on the `Spec K`-valued points of a connected
+finite étale `k`-scheme. -/
+instance [Normal k K] [IsConnected X] :
     MulAction.IsPretransitive (K ≃ₐ[k] K) (Over.mk (ξ k K) ⟶ X.toComma) := by
   constructor
   intro x y
-  letI : Algebra Γ(X.left, ⊤) K := (homEquivAlgHom k K X x).toAlgebra
   obtain ⟨g, h⟩ := MulAction.exists_smul_eq (K ≃ₐ[k] K)
     (homEquivAlgHom k K X x) (homEquivAlgHom k K X y)
   use g
   apply (homEquivAlgHom k K X).injective
   rwa [homEquivAlgHom_smul]
+
+/-- An isomorphism of finite étale `k`-schemes induces an isomorphism of the `k`-algebras
+of global sections. -/
+noncomputable
+def algEquivOfIso {X Y : FiniteEtale (Spec (.of k))} (e : X ≅ Y) :
+    Γ(Y.left, ⊤) ≃ₐ[k] Γ(X.left, ⊤) :=
+  AlgEquiv.ofRingEquiv
+    (f := (Scheme.Γ.mapIso ((forget _ ⋙ Over.forget _).mapIso e).op).commRingCatIsoToRingEquiv)
+    (fun a ↦ appTop_left_algebraMap k e.hom a)
+
+lemma algEquivOfIso_apply {X Y : FiniteEtale (Spec (.of k))} (e : X ≅ Y) (a : Γ(Y.left, ⊤)) :
+    algEquivOfIso k e a = e.hom.left.appTop a :=
+  rfl
+
+/-- The global sections of a Galois object of `FiniteEtale (Spec k)` form a finite Galois
+extension of `k`. -/
+instance isGalois_of_isGalois [IsGalois X] : IsGalois k Γ(X.left, ⊤) := by
+  let Ω : Type u := AlgebraicClosure k
+  let F := fib k Ω
+  have : Algebra.IsSeparable k Γ(X.left, ⊤) :=
+    (Algebra.FormallyEtale.iff_isSeparable k Γ(X.left, ⊤)).mp inferInstance
+  obtain ⟨x₀⟩ := nonempty_fiber_of_isConnected F X
+  let e : F.obj X ≃ (Γ(X.left, ⊤) →ₐ[k] Ω) :=
+    (fiberObjEquivHom (ξ k Ω) X).trans (homEquivAlgHom k Ω X)
+  apply IsGalois.of_card_aut_eq_finrank
+  rw [← AlgHom.natCard_of_splits k Γ(X.left, ⊤) Ω (fun _ ↦ IsAlgClosed.splits _)]
+  refine Nat.card_congr (Equiv.ofBijective (fun τ ↦ (e x₀).comp τ.toAlgHom) ⟨?_, ?_⟩)
+  · intro τ₁ τ₂ h
+    ext a
+    exact (e x₀).injective (DFunLike.congr_fun h a)
+  · intro ψ
+    obtain ⟨σ, hσ⟩ := MulAction.exists_smul_eq (Aut X) x₀ (e.symm ψ)
+    refine ⟨algEquivOfIso k σ, ?_⟩
+    rw [← e.apply_symm_apply ψ, ← hσ]
+    ext a
+    change _ = homEquivAlgHom k Ω X (fiberObjEquivHom (ξ k Ω) X (F.map σ.hom x₀)) a
+    rw [← fiberObjEquivHom_naturality, homEquivAlgHom_comp]
+    rfl
 
 lemma eq_one_of_smul_eq [Algebra.IsSeparable k K] (g : K ≃ₐ[k] K)
     (H : ∀ (X : FiniteEtale (Spec (.of k))) (x : (Over.mk (ξ k K) ⟶ X.toComma)), g • x = x) :
@@ -309,9 +458,30 @@ lemma eq_one_of_smul_eq [Algebra.IsSeparable k K] (g : K ≃ₐ[k] K)
   rw [← Spec.map_comp, Spec.map_injective.eq_iff, ConcreteCategory.ext_iff, RingHom.ext_iff] at H
   exact H ⟨x, IntermediateField.mem_adjoin_simple_self k x⟩
 
+variable [IsSepClosed K]
+
+noncomputable
+instance : MulAction (K ≃ₐ[k] K) ((forget _ ⋙ coyoneda.obj ⟨Over.mk (ξ k K)⟩).obj X) :=
+  fast_instance% inferInstanceAs <| MulAction (K ≃ₐ[k] K) (Over.mk (ξ k K) ⟶ X.toComma)
+
+noncomputable
+instance (X : FiniteEtale (Spec (.of k))) : SMul (K ≃ₐ[k] K) ((fib k K).obj X) where
+  smul g x := (fiberIsoCoyoneda (ξ k K)).inv.app X <| g • (((fiberIsoCoyoneda (ξ k K)).hom.app X) x)
+
+lemma algEquiv_smul_fiber_def (g : K ≃ₐ[k] K) (x : (fib k K).obj X) :
+    g • x = (fiberObjEquivHom (ξ k K) X).symm (g • ((fiberObjEquivHom (ξ k K) X) x)) :=
+  rfl
+
+noncomputable
+instance (X : FiniteEtale (Spec (.of k))) : MulAction (K ≃ₐ[k] K) ((fib k K).obj X) where
+  one_smul x := by simp [algEquiv_smul_fiber_def]
+  mul_smul g h x := by simp [algEquiv_smul_fiber_def, mul_smul]
+
 variable [IsGalois k K]
 
-instance : IsFundamentalGroup (fib k K) (K ≃ₐ[k] K) where
+/-- If `K` is a separable closure of `k`, the absolute Galois group `Gal(K/k)` is a fundamental
+group for the fiber functor of `FiniteEtale (Spec k)` at the geometric point `Spec K ⟶ Spec k`. -/
+instance isFundamentalGroup : IsFundamentalGroup (fib k K) (K ≃ₐ[k] K) where
   naturality g X Y f x := by
     apply (fiberObjEquivHom (ξ k K) Y).injective
     rw [algEquiv_smul_fiber_def, algEquiv_smul_fiber_def]
@@ -320,13 +490,11 @@ instance : IsFundamentalGroup (fib k K) (K ≃ₐ[k] K) where
     simp only [Over.mk_left, Over.comp_left, algEquiv_smul_hom, Category.assoc]
     simp [← Over.comp_left, fiberObjEquivHom_naturality]
   continuous_smul X := by
-    constructor
-    let u : (K ≃ₐ[k] K) × (fib k K).obj X → (fib k K).obj X :=
-      (fiberObjEquivHom (ξ k K) X).symm ∘ (fun p ↦ p.1 • p.2) ∘
-      fun p ↦ (p.1, fiberObjEquivHom (ξ k K) X p.2)
-    show Continuous u
-    dsimp [u]
-    fun_prop
+    rw [continuousSMul_iff_stabilizer_isOpen]
+    intro x
+    convert stabilizer_isOpen (K ≃ₐ[k] K) (fiberObjEquivHom (ξ k K) X x) using 2
+    ext g
+    simp [MulAction.mem_stabilizer_iff, algEquiv_smul_fiber_def, Equiv.symm_apply_eq]
   transitive_of_isGalois X _ := by
     constructor
     intro x y
@@ -342,6 +510,16 @@ instance : IsFundamentalGroup (fib k K) (K ≃ₐ[k] K) where
     apply (fiberObjEquivHom (ξ k K) X).symm.injective
     specialize H X ((fiberObjEquivHom (ξ k K) X).symm x)
     rwa [algEquiv_smul_fiber_def, Equiv.apply_symm_apply] at H
+
+/-- If `K` is a separable closure of `k`, the étale fundamental group of `Spec k` at the
+geometric point `Spec K ⟶ Spec k` is isomorphic to the absolute Galois group `Gal(K/k)`.
+This isomorphism is also a homeomorphism, see `isHomeomorph_mulEquivAutFiber`. -/
+noncomputable
+def mulEquivAutFiber : (K ≃ₐ[k] K) ≃* Aut (fib k K) :=
+  toAutMulEquiv (fib k K) (K ≃ₐ[k] K)
+
+lemma isHomeomorph_mulEquivAutFiber : IsHomeomorph (mulEquivAutFiber k K) :=
+  toAutMulEquiv_isHomeomorph _ _
 
 end FiniteEtale
 
