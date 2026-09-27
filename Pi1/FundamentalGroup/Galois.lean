@@ -146,7 +146,7 @@ def inventScheme (Ω : Type u) [Field Ω] : FintypeCat.{u} ⥤ FiniteEtale (Spec
     mk (Spec.map <| CommRingCat.ofHom <| algebraMap Ω (S → Ω))
   map {S T} f :=
     MorphismProperty.Over.homMk
-      (Spec.map <| CommRingCat.ofHom <| Pi.ringHom (fun s ↦ Pi.evalRingHom _ (f s))) <| by
+      (Spec.map <| CommRingCat.ofHom <| RingHom.pi (fun s ↦ Pi.evalRingHom _ (f s))) <| by
       dsimp
       rw [← Spec.map_comp]
       rfl
@@ -196,7 +196,7 @@ def inventForgetIso : inventScheme Ω ⋙ forgetScheme Ω ≅ 𝟭 FintypeCat :=
         Equiv.symm_symm]
       simp only [← FintypeCat.hom_apply]
       have : (Pi.evalRingHom (fun i ↦ Ω) x).comp
-          (Pi.ringHom fun s ↦ Pi.evalRingHom (fun a ↦ Ω) (f s)) = Pi.evalRingHom _ (f x) := rfl
+          (RingHom.pi fun s ↦ Pi.evalRingHom (fun a ↦ Ω) (f s)) = Pi.evalRingHom _ (f x) := rfl
       /- This was:
       ```
       rw [← Scheme.Hom.comp_apply, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
@@ -348,9 +348,8 @@ lemma _root_.AlgebraicGeometry.IsFiniteEtale.isoSpecFun_hom_SpecMap [IsSepClosed
   dsimp
   apply (IsArtinianRing.equivPi Γ(X, ⊤)).injective
   ext j
-  dsimp [← AlgEquiv.symm_toRingEquiv]
+  erw [AlgEquiv.apply_symm_apply]
   simp [RingHom.algebraMap_toAlgebra]
-  rw [IsArtinianRing.equivPi_apply]
   simp [Scheme.Hom.appTop, Scheme.Hom.appLE, Iso.commRingCatIsoToRingEquiv]
 
 --@[simp]
@@ -358,7 +357,7 @@ lemma IsArtinianRing.equivPi_naturality_apply (R S : Type*) [CommRing R] [CommRi
     [IsArtinianRing R] [IsArtinianRing S] [_root_.IsReduced R] [_root_.IsReduced S]
     (f : R →+* S) (x : R) :
     IsArtinianRing.equivPi S (f x) =
-      Pi.ringHom
+      RingHom.pi
         (fun m ↦ RingHom.comp
           (by exact Ideal.quotientMap m.asIdeal f (by simp))
           (Pi.evalRingHom _ ⟨Ideal.comap f m.asIdeal, IsArtinianRing.isMaximal_of_isPrime _⟩))
@@ -394,13 +393,13 @@ def forgetInventIso [IsSepClosed Ω] : 𝟭 (FiniteEtale _) ≅ forgetScheme Ω 
         RingEquiv.symm_trans_apply, RingEquiv.piCongrRight_symm, RingEquiv.symm_symm]
       apply (IsArtinianRing.equivPi Γ(X.left, ⊤)).injective
       ext j
-      dsimp [← AlgEquiv.symm_toRingEquiv]
+      dsimp [← AlgEquiv.symm_toRingEquiv, -_root_.IsArtinianRing.equivPi_apply]
       simp only [AlgEquiv.apply_symm_apply, RingEquiv.piCongrRight_apply,
         RingEquiv.piCongrLeft_symm_apply, Equiv.symm_symm, RingEquiv.piCongrLeft'_apply,
-        Equiv.symm_trans_apply, Homeomorph.coe_symm_toEquiv, Pi.ringHom_apply, Pi.evalRingHom_apply,
+        Equiv.symm_trans_apply, Homeomorph.coe_symm_toEquiv, RingHom.pi_apply, Pi.evalRingHom_apply,
         RingEquiv.coe_ofBijective]
       rw [IsArtinianRing.equivPi_naturality_apply]
-      simp only [AlgEquiv.apply_symm_apply, Pi.ringHom_apply, RingHom.coe_comp, Function.comp_apply,
+      simp only [AlgEquiv.apply_symm_apply, RingHom.pi_apply, RingHom.coe_comp, Function.comp_apply,
         Pi.evalRingHom_apply, RingEquiv.piCongrRight_apply, RingEquiv.piCongrLeft_symm_apply,
         Equiv.symm_symm, RingEquiv.piCongrLeft'_apply, Equiv.symm_trans_apply,
         Homeomorph.coe_symm_toEquiv, RingEquiv.coe_ofBijective, Ideal.quotientMap_algebraMap,

@@ -150,7 +150,7 @@ scoped notation3:arg "ξ " k:arg K:arg => Spec.map (CommRingCat.ofHom <| algebra
 noncomputable
 instance (X : FiniteEtale (Spec (.of k))) :
     SMul (K ≃ₐ[k] K) (Over.mk (ξ k K) ⟶ X.toComma) where
-  smul g x := Over.homMk (Spec.map (CommRingCat.ofHom g))
+  smul g x := Over.homMk (V := Over.mk (ξ k K)) (Spec.map (CommRingCat.ofHom (g : K →+* K)))
     (by
       dsimp only [Over.mk_left, Functor.const_obj_obj, Over.mk_hom]
       rw [← Spec.map_comp, ← CommRingCat.ofHom_comp, ← AlgEquiv.toAlgHom_toRingHom,
@@ -159,14 +159,14 @@ instance (X : FiniteEtale (Spec (.of k))) :
 @[simp]
 lemma algEquiv_smul_hom {X : FiniteEtale (Spec (.of k))} (g : K ≃ₐ[k] K)
     (x : Over.mk (ξ k K) ⟶ X.toComma) :
-    (g • x).left = Spec.map (CommRingCat.ofHom g) ≫ x.left :=
+    (g • x).left = Spec.map (CommRingCat.ofHom (g : K →+* K)) ≫ x.left :=
   rfl
 
 variable (X : FiniteEtale (Spec (.of k)))
 
 noncomputable
 instance : MulAction (K ≃ₐ[k] K) (Over.mk (ξ k K) ⟶ X.toComma) where
-  smul g x := Over.homMk (Spec.map (CommRingCat.ofHom g))
+  smul g x := Over.homMk (V := Over.mk (ξ k K)) (Spec.map (CommRingCat.ofHom (g : K →+* K)))
     (by
       dsimp only [Over.mk_left, Functor.const_obj_obj, Over.mk_hom]
       rw [← Spec.map_comp, ← CommRingCat.ofHom_comp, ← AlgEquiv.toAlgHom_toRingHom,

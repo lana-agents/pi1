@@ -9,7 +9,7 @@ public import Mathlib.AlgebraicGeometry.Morphisms.Etale
 public import Pi1.Mathlib.AlgebraicGeometry.Morphisms.Finite
 public import Pi1.Mathlib.RingTheory.RingHom.Etale
 public import Pi1.FundamentalGroup.AffineAnd
-public import Pi1.RingTheory.StableProperties
+public import Mathlib.Algebra.Category.Ring.Under.Property
 public import Pi1.RingTheory.KerTensor
 
 /-!
@@ -230,7 +230,7 @@ instance {Y : Scheme.{u}} (f : X ⟶ Y) :
   have (R S : CommRingCat.{u}) (f : R ⟶ S) :
       PreservesFiniteLimits (MorphismProperty.Under.pushout
         (RingHom.toMorphismProperty RingHom.FiniteEtale) ⊤ f) := by
-    apply CommRingCat.preservesFiniteLimits_pushout_of_hasStableEqualizers
+    apply RingHom.HasStableEqualizers.preservesFiniteLimits_pushout
     · exact FiniteEtale.respectsIso
     · exact FiniteEtale.hasFiniteProducts
     · exact FiniteEtale.hasEqualizers

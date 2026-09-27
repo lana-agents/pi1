@@ -129,86 +129,6 @@ instance (P : MorphismProperty C) : (⊤ : MorphismProperty C).HasOfPostcompProp
 
 end
 
-section
-
-variable {C : Type*} [Category C] (X : C)
-
-def Over.opToUnderOp : Over (op X) ⥤ (Under X)ᵒᵖ where
-  obj Y := ⟨Under.mk Y.hom.unop⟩
-  map {Z Y} f := ⟨Under.homMk (f.left.unop) (by dsimp; rw [← unop_comp, Over.w])⟩
-
-def Under.opToOverOp : (Under X)ᵒᵖ ⥤ Over (op X) where
-  obj Y := Over.mk (Y.unop.hom.op)
-  map {Z Y} f := Over.homMk f.unop.right.op <| by
-    dsimp
-    rw [← Under.w f.unop, op_comp]
-
-def Over.equivUnderOp : Over (op X) ≌ (Under X)ᵒᵖ where
-  functor := Over.opToUnderOp X
-  inverse := Under.opToOverOp X
-  unitIso := eqToIso rfl
-  counitIso := eqToIso rfl
-
-end
-
-section
-
-namespace CategoryTheory.Limits
-
-variable {C D J : Type*} [Category C] [Category D] [Category J] (F : C ⥤ D)
-  (K : J ⥤ C)
-
-variable {K} in
-def coconeHomOp {c c' : Cocone K} (f : c ⟶ c') : c'.op ⟶ c.op where
-  hom := (f.hom).op
-  w j := by simp [← op_comp]
-
-variable {K} in
-def coneHomOp {c c' : Cone K} (f : c ⟶ c') : c'.op ⟶ c.op where
-  hom := f.hom.op
-  w j := by simp [← op_comp]
-
-variable {K} in
-def coconeHomUnop {c c' : Cocone K} (f : c.op ⟶ c'.op) : c' ⟶ c where
-  hom := f.hom.unop
-  w j := by simpa using congrArg Quiver.Hom.unop (f.w ⟨j⟩)
-
-variable {K} in
-def coneHomUnop {c c' : Cone K} (f : c.op ⟶ c'.op) : c' ⟶ c where
-  hom := f.hom.unop
-  w j := by simpa using congrArg Quiver.Hom.unop (f.w ⟨j⟩)
-
-def opOpCoconeEquiv : Cocone K ≌ Cocone K.op.op where
-  functor := {
-      obj := fun c ↦ c.op.op
-      map := fun {c c'} f ↦ coneHomOp (coconeHomOp f)
-    }
-  inverse := {
-      obj := fun c ↦ c.unop.unop
-      map := fun {c c'} f ↦ coconeHomUnop (coneHomUnop f)
-    }
-  unitIso := eqToIso rfl
-  counitIso := eqToIso rfl
-
-variable {K F} in
-def isColimitOfIsLimitMapOp {c : Cocone K} (h : IsLimit (F.op.mapCone c.op)) :
-    IsColimit (F.mapCocone c) :=
-  IsColimit.ofCoconeEquiv (opOpCoconeEquiv (K ⋙ F)) h.op
-
-@[implicit_reducible]
-def preservesColimitOfOp [PreservesLimit K.op F.op] :
-    PreservesColimit K F where
-  preserves {_} hc := ⟨isColimitOfIsLimitMapOp (isLimitOfPreserves F.op hc.op)⟩
-
-@[implicit_reducible]
-def preservesColimitsOfShapeOfOp [PreservesLimitsOfShape Jᵒᵖ F.op] :
-    PreservesColimitsOfShape J F where
-  preservesColimit {K} := preservesColimitOfOp F K
-
-end CategoryTheory.Limits
-
-end
-
 namespace AlgebraicGeometry
 
 section
@@ -391,10 +311,10 @@ instance : (toAffine S).IsEquivalence := (toAffineEquiv S).isEquivalence_functor
 instance : (fromAffine S).IsEquivalence := (toAffineEquiv S).isEquivalence_inverse
 
 def Over.AffineΓ : Over (AffineScheme.mk S inferInstance) ⥤ (Under Γ(S, ⊤))ᵒᵖ :=
-  Over.post AffineScheme.Γ.rightOp ⋙ (Over.equivUnderOp _).functor
+  Over.post AffineScheme.Γ.rightOp ⋙ (Over.opEquivOpUnder _).functor
 
 instance : (Over.AffineΓ S).IsEquivalence := inferInstanceAs <|
-  (Over.post AffineScheme.Γ.rightOp ⋙ (Over.equivUnderOp _).functor).IsEquivalence
+  (Over.post AffineScheme.Γ.rightOp ⋙ (Over.opEquivOpUnder _).functor).IsEquivalence
 
 lemma Γ_eq : Γ S = (toAffine S ⋙ Over.AffineΓ S).leftOp := rfl
 
@@ -459,7 +379,7 @@ instance preservesColimitsOfShapePullback [PreservesLimitsOfShape Jᵒᵖ (Under
     preservesLimitsOfShape_of_natIso (pullbackΓIso f).symm
   have : PreservesLimitsOfShape Jᵒᵖ (pullback f).op :=
     preservesLimitsOfShape_of_reflects_of_preserves _ (Γ T)
-  preservesColimitsOfShapeOfOp (pullback f)
+  preservesColimitsOfShape_of_op _ (pullback f)
 
 instance [Flat f] : PreservesFiniteColimits (pullback f) where
   preservesFiniteColimits _ := inferInstance

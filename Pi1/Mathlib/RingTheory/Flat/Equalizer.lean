@@ -120,15 +120,17 @@ lemma auxEquivRHS_symm_tmul (f g : A →ₐ[R] B) (T : Type u) [CommRing T] [Alg
     [Module.Flat R T] (x : S) :
     (auxEquivRHS (S := S) f g T).symm (algebraMap (T ⊗[R] S) _ (1 ⊗ₜ x)) =
       1 ⊗ₜ algebraMap _ _ x := by
-  simpa [auxEquivRHS, AlgHom.equalizerCongr_symm_apply] using
-    AlgHom.tensorEqualizerEquiv_symm_apply ..
+  simp only [auxEquivRHS, AlgHom.equalizerCongr_symm_apply]
+  simp
+  exact AlgHom.tensorEqualizerEquiv_symm_apply ..
 
 lemma auxEquivRHS_symm_tmul' (f g : A →ₐ[R] B) (T : Type u) [CommRing T] [Algebra R T]
     [Module.Flat R T] (x : AlgHom.equalizer f g) :
     (auxEquivRHS (S := S) f g T).symm ⟨1 ⊗ₜ (1 ⊗ₜ x), by simp [show f x = g x from x.2]⟩ =
       1 ⊗ₜ ⟨1 ⊗ₜ x, by simp [show f x = g x from x.2]⟩ := by
-  simpa [auxEquivRHS, AlgHom.equalizerCongr_symm_apply] using
-    AlgHom.tensorEqualizerEquiv_symm_apply ..
+  simp only [auxEquivRHS, AlgHom.equalizerCongr_symm_apply]
+  simp
+  exact AlgHom.tensorEqualizerEquiv_symm_apply ..
 
 noncomputable
 def auxEquivLHS (f g : A →ₐ[R] B) (T : Type u) [CommRing T] [Algebra R T] [Module.Flat R T] :
@@ -201,7 +203,7 @@ lemma TensorProduct.map_tensorEqualizer_bijective_iff_tensorEqualizer_map_biject
         AlgHom.coe_restrictScalars']
       erw [AlgHom.comp_apply]
       erw [AlgHom.comp_apply]
-      simp only [AlgEquiv.coe_algHom, auxEquivLHS_one_tmul_one, eLHS]
+      simp only [AlgEquiv.coe_toAlgHom, auxEquivLHS_one_tmul_one, eLHS]
       show 1 ⊗ₜ[R] (AlgHom.tensorEqualizer S S f g) (x ⊗ₜ 1) = eRHS.symm
         ((AlgHom.tensorEqualizer (T ⊗[R] S) (T ⊗[R] S)
           (TensorProduct.map (AlgHom.id T T) f) (TensorProduct.map (AlgHom.id T T) g))
@@ -213,7 +215,7 @@ lemma TensorProduct.map_tensorEqualizer_bijective_iff_tensorEqualizer_map_biject
         eLHS]
       erw [AlgHom.comp_apply]
       erw [AlgHom.comp_apply]
-      simp only [AlgEquiv.coe_algHom]
+      simp only [AlgEquiv.coe_toAlgHom]
       rw [auxEquivLHS_one_one_tmul]
       rw [AlgHom.tensorEqualizer_one_tmul, AlgHom.tensorEqualizer_one_tmul,
         auxEquivRHS_symm_tmul']

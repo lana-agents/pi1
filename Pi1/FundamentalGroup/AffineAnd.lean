@@ -184,6 +184,7 @@ theorem preservesFiniteLimits_pullback
     [P.IsStableUnderComposition] [P.ContainsIdentities]
     [P.HasOfPostcompProperty P] {Y : Scheme.{u}} (f : X ⟶ Y) :
     PreservesFiniteLimits (MorphismProperty.Over.pullback P ⊤ f) := by
+  have : P.IsMultiplicative := {}
   infer_instance
 
 @[simps!]
@@ -226,8 +227,8 @@ omit [P.IsStableUnderBaseChange] in
 lemma ΓProp_map_right (hQi : RingHom.RespectsIso Q) (S : Scheme.{u}) [IsAffine S]
     {X Y : (P.Over ⊤ S)ᵒᵖ} (f : X ⟶ Y) :
     ((ΓProp P hQi S).map f).right = f.unop.left.appTop := by
-  simpa [ΓProp, IsAffineOpen.ΓProp, Scheme.Hom.appTop] using
-    (Scheme.Hom.app_eq_appLE ..).symm
+  simp only [ΓProp, IsAffineOpen.ΓProp, Scheme.Hom.appTop]
+  exact (Scheme.Hom.app_eq_appLE ..).symm
 
 lemma _root_.AlgebraicGeometry.Scheme.Hom.appTop_bijective_of_isAffine
       {X Y : Scheme.{u}} [IsAffine X] [IsAffine Y] :
@@ -578,7 +579,7 @@ nonrec theorem preservesFiniteColimits_pullback (hQi : RingHom.RespectsIso Q)
     simp only [MorphismProperty.Over.pullback_obj_left, MorphismProperty.Over.pullback_obj_hom,
       colimit.post_post]
     have heq : 𝒰X.f i = (Scheme.OpenCover.fromAffineRefinement _).h₀ i ≫ pullback.fst f uᵢ := by
-      convert (Scheme.OpenCover.fromAffineRefinement (Y.affineCover.pullback₁ f)).w₀ i
+      exact ((Scheme.OpenCover.fromAffineRefinement (Y.affineCover.pullback₁ f)).w₀ i).symm
     let aux : 𝒰X.X i ⟶ Y.affineCover.X i.fst :=
       (Scheme.OpenCover.fromAffineRefinement _).h₀ i ≫ pullback.snd f uᵢ
     let natiso :

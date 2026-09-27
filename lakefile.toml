@@ -12,10 +12,12 @@ linter.unusedTactic = false
 linter.unreachableTactic = false
 backward.isDefEq.respectTransparency = false
 maxSynthPendingDepth = 3
+backward.defeqAttrib.useBackward = true
 
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
+rev = "v4.32.0"
 
 [[lean_lib]]
 name = "Pi1"

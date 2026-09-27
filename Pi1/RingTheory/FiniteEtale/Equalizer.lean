@@ -37,7 +37,7 @@ lemma AlgHom.exists_cover_eq_of_eq {R A B : Type*} [CommRing R] (S : Submonoid R
     refine Module.Finite.exists_smul_of_comp_eq_of_isLocalizedModule S
       (N := B) (N' := Bₚ) (M := A) u f g ?_
     ext x
-    simpa using DFunLike.congr_fun hf (algebraMap A Aₚ x)
+    simpa [u] using DFunLike.congr_fun hf (algebraMap A Aₚ x)
   use s
   ext a
   simp only [Algebra.TensorProduct.map_restrictScalars_comp_includeRight, coe_comp,
@@ -49,9 +49,9 @@ lemma AlgHom.exists_cover_eq_of_eq {R A B : Type*} [CommRing R] (S : Submonoid R
     apply hun.mul_left_cancel
     rwa [← Algebra.smul_def, ← Algebra.smul_def]
   have := DFunLike.congr_fun hs a
-  simp only [Submonoid.smul_def, LinearMap.smul_apply, LieHom.coe_toLinearMap, coe_toLieHom] at this
-  rw [← TensorProduct.tmul_smul]
-  rw [← TensorProduct.tmul_smul, this]
+  simp only [Submonoid.smul_def, LinearMap.smul_apply] at this
+  rw [← TensorProduct.tmul_smul, ← TensorProduct.tmul_smul]
+  exact congrArg _ this
 
 end
 
@@ -67,12 +67,12 @@ def AlgHom.equalizerCongr {R A A' B B' : Type*} [CommSemiring R]
   AlgEquiv.ofAlgHom
     (AlgHom.codRestrict (eA.toAlgHom.comp (equalizer f g).val) _ <| by
       intro x
-      simp only [coe_comp, AlgEquiv.coe_algHom, Subalgebra.coe_val, Function.comp_apply,
+      simp only [coe_comp, AlgEquiv.coe_toAlgHom, Subalgebra.coe_val, Function.comp_apply,
         mem_equalizer]
       rw [← hf', x.2, hg'])
     (AlgHom.codRestrict (eA.symm.toAlgHom.comp (equalizer f' g').val) _ <| by
       intro x
-      simp only [coe_comp, AlgEquiv.coe_algHom, Subalgebra.coe_val, Function.comp_apply,
+      simp only [coe_comp, AlgEquiv.coe_toAlgHom, Subalgebra.coe_val, Function.comp_apply,
         mem_equalizer]
       apply eB.injective
       rw [hf', hg', AlgEquiv.apply_symm_apply, x.2])
@@ -136,17 +136,22 @@ section
 
 variable {E F : Type*}
 
-@[simps!]
 def AlgHom.compRight (R S : Type*) [CommRing R] [CommRing S] [Algebra R S] (σ : E → F) :
     (F → S) →ₐ[R] E → S :=
   Pi.algHom R _ (fun f ↦ Pi.evalAlgHom R _ (σ f))
+
+@[simp]
+lemma AlgHom.compRight_apply (R S : Type*) [CommRing R] [CommRing S] [Algebra R S] (σ : E → F)
+    (x : F → S) (i : E) :
+    AlgHom.compRight R S σ x i = x (σ i) :=
+  rfl
 
 instance [Finite F] (σ τ : E → F) : Finite (Function.Coequalizer σ τ) :=
   Finite.of_surjective _ (Function.Coequalizer.mk_surjective σ τ)
 
 def RingHom.compRight (R : Type*) [CommRing R] {E F : Type*} (σ : E → F) :
     (F → R) →+* (E → R) :=
-  Pi.ringHom (fun f ↦ Pi.evalRingHom _ (σ f))
+  RingHom.pi (fun f ↦ Pi.evalRingHom _ (σ f))
 
 @[simp]
 lemma RingHom.compRight_apply (R : Type*) [CommRing R] {E F : Type*} (σ : E → F)
@@ -276,13 +281,13 @@ lemma AlgHom.exists_cover_eq_compRight'' {R : Type*} {E F : Type u}
   have : IsLocalization (Algebra.algebraMapSubmonoid (E → R) p.primeCompl)
       (E → Localization.AtPrime p) := by
     rw [← isLocalizedModule_iff_isLocalization]
-    convert IsLocalizedModule.pi p.primeCompl (fun _ ↦ Algebra.linearMap R (Localization.AtPrime p))
-    infer_instance
+    convert IsLocalizedModule.pi p.primeCompl
+      (fun _ ↦ Algebra.linearMap R (Localization.AtPrime p)) <;> first | rfl | infer_instance
   have : IsLocalization (Algebra.algebraMapSubmonoid (F → R) p.primeCompl)
       (F → Localization.AtPrime p) := by
     rw [← isLocalizedModule_iff_isLocalization]
-    convert IsLocalizedModule.pi p.primeCompl (fun _ ↦ Algebra.linearMap R (Localization.AtPrime p))
-    infer_instance
+    convert IsLocalizedModule.pi p.primeCompl
+      (fun _ ↦ Algebra.linearMap R (Localization.AtPrime p)) <;> first | rfl | infer_instance
   let fₚ : (E → Localization.AtPrime p) →ₐ[Localization.AtPrime p] F → Localization.AtPrime p :=
     IsLocalization.mapₐ p.primeCompl (Localization.AtPrime p)
       (E → Localization.AtPrime p)

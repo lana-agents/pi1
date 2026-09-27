@@ -1,4 +1,4 @@
-module  -- shake: keep-all
+module  -- shake: keep-all --deprecated_module: ignore
 
 public import Pi1.FundamentalGroup.AffineAnd
 public import Pi1.FundamentalGroup.AffineColimits
@@ -23,5 +23,4 @@ public import Pi1.RingTheory.FiniteEtale.Descent
 public import Pi1.RingTheory.FiniteEtale.Equalizer
 public import Pi1.RingTheory.KerTensor
 public import Pi1.RingTheory.Smooth.StandardSmoothSmooth
-public import Pi1.RingTheory.StableProperties
 public import Pi1.RingTheory.Transcendence

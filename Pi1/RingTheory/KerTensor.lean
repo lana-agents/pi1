@@ -41,7 +41,7 @@ lemma OfLocalizationSpan.pi (hP : OfLocalizationSpan P)
     (R : ι → Type u) (S : ι → Type u) [∀ i, CommRing (R i)]
     [∀ i, CommRing (S i)] (f : ∀ i, R i →+* S i)
     (hf : ∀ i, P (f i)) :
-    P (Pi.ringHom <| fun i ↦ (f i).comp <| Pi.evalRingHom R i) := by
+    P (RingHom.pi <| fun i ↦ (f i).comp <| Pi.evalRingHom R i) := by
   classical
   have := Ideal.span_single_eq_top R
   apply hP.ofIsLocalization hPi _ _ this
@@ -52,10 +52,10 @@ lemma OfLocalizationSpan.pi (hP : OfLocalizationSpan P)
   · refine IsLocalization.away_of_isIdempotentElem ?_ (RingHom.ker_evalRingHom _ _)
       ((Pi.evalRingHom R i).surjective)
     simp [IsIdempotentElem, ← Pi.single_mul_left]
-  · have : (Pi.ringHom fun i ↦ (f i).comp <| Pi.evalRingHom R i)
+  · have : (RingHom.pi fun i ↦ (f i).comp <| Pi.evalRingHom R i)
         (Pi.single i 1) = Pi.single i 1 := by
       ext j
-      simp only [Pi.single, Pi.ringHom_apply, coe_comp, Function.comp_apply, Pi.evalRingHom_apply,
+      simp only [Pi.single, RingHom.pi_apply, coe_comp, Function.comp_apply, Pi.evalRingHom_apply,
         Function.update, Pi.zero_apply]
       by_cases h : j = i
       · subst h
@@ -251,7 +251,7 @@ lemma AlgHom.IsSplit.mk (f : A →ₐ[R] B) {E F : Type*} [_root_.Finite E] [_ro
   · ext x
     apply eB.injective
     have := DFunLike.congr_fun h x
-    simp only [coe_comp, AlgEquiv.coe_algHom, Function.comp_apply] at this
+    simp only [coe_comp, AlgEquiv.coe_toAlgHom, Function.comp_apply] at this
     ext i
     simp [this, AlgHom.compRight]
 
@@ -370,7 +370,8 @@ lemma exists_isSplit [Module.Finite R A] [Algebra.Etale R A]
       (TensorProduct.congr .refl eA |>.trans (TensorProduct.piScalarRight ..))
       (TensorProduct.congr .refl eB |>.trans (TensorProduct.piScalarRight ..)) σ
     ext a : 2
-    simpa [TensorProduct.piScalarRight_tmul, f', e] using congr(e ($(hσ) (1 ⊗ₜ eA a)))
+    simpa [TensorProduct.piScalarRight_tmul, f', e, AlgHom.compRight_apply'] using
+      congr(e ($(hσ) (1 ⊗ₜ eA a)))
 
 local notation f " ≟ₐ " g => AlgHom.equalizer f g
 local notation S " ⊗ₘ " f => Algebra.TensorProduct.map (AlgHom.id S S) f
@@ -406,7 +407,7 @@ lemma tensorEqualizer_compRight_bijective {E F : Type*} [Finite E] [Finite F]
     simp only [AlgHom.coe_comp, AlgHom.coe_restrictScalars', Function.comp_apply,
       TensorProduct.includeRight_apply, AlgHom.coe_tensorEqualizer, TensorProduct.map_tmul,
       AlgHom.coe_id, id_eq, Subalgebra.coe_val, TensorProduct.piScalarRight_tmul, smul_def, mul_one,
-      AlgEquiv.coe_algHom, TensorProduct.congr_apply, AlgEquiv.refl_toAlgHom,
+      AlgEquiv.coe_toAlgHom, TensorProduct.congr_apply, AlgEquiv.refl_toAlgHom,
       AlgHom.equalizerCongr_symm_apply, AlgEquiv.apply_symm_apply, eq₃, eL, e₂, eq₂, eq₁, e₁]
     ext i
     rw [AlgHom.equalizerCompRightEquiv_symm_apply, AlgHom.equalizerCompRightEquiv_apply]
