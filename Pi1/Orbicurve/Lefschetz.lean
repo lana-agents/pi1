@@ -1,6 +1,7 @@
 module
 
 public import Pi1.Orbicurve.EllipticSubfield
+public import Pi1.Orbicurve.HemiTY
 
 /-!
 # The Lefschetz principle for [CanLift], Proposition 2.7
@@ -305,6 +306,108 @@ lemma coordRingVal_rebaseEquiv (hst : IsIntegral (A₀ k t) s) (hts : IsIntegral
   rw [RingEquiv.trans_apply, RingEquiv.trans_apply, RingEquiv.apply_symm_apply]
   exact RingEquiv.coe_subringCongr_apply _ _
 
+lemma isIntegral_K₀_trans {s' t' x : Ω} (hts : IsIntegral (K₀ k s') t')
+    (hx : IsIntegral (K₀ k t') x) : IsIntegral (K₀ k s') x := by
+  let R : IntermediateField (K₀ k s') Ω := IntermediateField.adjoin (K₀ k s') {t'}
+  haveI : FiniteDimensional (K₀ k s') R := IntermediateField.adjoin.finiteDimensional hts
+  have hle : ∀ z ∈ K₀ k t', z ∈ R := by
+    let R' : IntermediateField k Ω := R.restrictScalars k
+    have : K₀ k t' ≤ R' := by
+      rw [IntermediateField.adjoin_le_iff, Set.singleton_subset_iff, SetLike.mem_coe,
+        IntermediateField.mem_restrictScalars]
+      exact IntermediateField.mem_adjoin_simple_self _ t'
+    exact fun z hz => this hz
+  let ι : K₀ k t' →+* R :=
+    { toFun := fun a => ⟨a, hle a a.2⟩
+      map_one' := Subtype.ext (by simp)
+      map_mul' := fun _ _ => Subtype.ext (by simp)
+      map_zero' := Subtype.ext (by simp)
+      map_add' := fun _ _ => Subtype.ext (by simp) }
+  have hxR : IsIntegral R x := by
+    obtain ⟨p, hp, hpx⟩ := hx
+    refine ⟨p.map ι, hp.map _, ?_⟩
+    rw [Polynomial.eval₂_map]
+    exact hpx
+  exact isIntegral_trans x hxR
+
+set_option maxHeartbeats 1000000 in
+/-- `F` is finite over `k(s)` when `t` is integral over `k[s]`. -/
+lemma finiteDimensional_rebase [CharZero k] (hts : IsIntegral (A₀ k s) t)
+    [FiniteDimensional (K₀ k t) F] : FiniteDimensional (K₀ k s) (rebase F hs) := by
+  haveI : CharZero (K₀ k t) := charZero_of_injective_algebraMap (algebraMap k (K₀ k t)).injective
+  haveI : Algebra.IsSeparable (K₀ k t) F := Algebra.IsAlgebraic.isSeparable_of_perfectField
+  obtain ⟨α, hα⟩ := Field.exists_primitive_element (K₀ k t) F
+  have htK : IsIntegral (K₀ k s) t := hts.tower_top
+  have hαK : IsIntegral (K₀ k s) (α : Ω) := isIntegral_K₀_trans htK
+    ((IsIntegral.of_finite (K₀ k t) α).map (IsScalarTower.toAlgHom (K₀ k t) F Ω))
+  let S : Set Ω := {t, (α : Ω)}
+  haveI : Finite S := Set.toFinite _
+  haveI : FiniteDimensional (K₀ k s) (IntermediateField.adjoin (K₀ k s) S) :=
+    IntermediateField.finiteDimensional_adjoin (by
+      rintro z (rfl | rfl)
+      · exact htK
+      · exact hαK)
+  have hle : rebase F hs ≤ IntermediateField.adjoin (K₀ k s) S := by
+    intro x hx
+    rw [mem_rebase] at hx
+    have h1 : (⟨x, hx⟩ : F) ∈ (K₀ k t)⟮α⟯ := hα ▸ IntermediateField.mem_top
+    have h2 : x ∈ ((K₀ k t)⟮α⟯).map F.val := ⟨_, h1, rfl⟩
+    rw [IntermediateField.adjoin_map, Set.image_singleton] at h2
+    let T : IntermediateField (K₀ k t) Ω :=
+      (IntermediateField.adjoin (K₀ k s) S).toSubfield.toIntermediateField (fun c => by
+        have : K₀ k t ≤ (IntermediateField.adjoin (K₀ k s) S).restrictScalars k := by
+          rw [IntermediateField.adjoin_le_iff, Set.singleton_subset_iff, SetLike.mem_coe,
+            IntermediateField.mem_restrictScalars]
+          exact IntermediateField.subset_adjoin _ _ (Or.inl rfl)
+        exact this c.2)
+    have h3 : (K₀ k t)⟮(F.val α)⟯ ≤ T := by
+      rw [IntermediateField.adjoin_simple_le_iff]
+      exact IntermediateField.subset_adjoin (K₀ k s) S (Or.inr rfl)
+    exact h3 h2
+  exact FiniteDimensional.of_injective (IntermediateField.inclusion hle).toLinearMap
+    (IntermediateField.inclusion hle).injective
+
 end Rebase
+
+section SOmegaTY
+
+variable (F : Type u) {Ω : Type u} [Field F] [CharZero F] [Field Ω] [Algebra F Ω] (t y : Ω)
+
+/-- **`CoreStar` for a double cover `F(t)(y)` of the `t`-line**, in terms of the elements
+`t, y ∈ Ω`: every finite étale morphism to the quotient orbicurve `hemiTY F t y` from the
+normalization of the `t`-line in a finite extension of `F(t)(y)` unramified over the coordinate
+ring of `F(t)(y)` is the canonical one. -/
+def SOmegaTY : Prop :=
+  ∀ (ht : Transcendental F t) [FiniteDimensional (K₀ F t) (fnTY F t y)]
+    [Algebra.IsSeparable (K₀ F t) (fnTY F t y)]
+    (L : IntermediateField (K₀ F t) Ω) [FiniteDimensional (K₀ F t) L]
+    [Algebra.IsSeparable (K₀ F t) L] (h : fnTY F t y ≤ L),
+    (∀ w : Ideal (coordRing F t L), w.IsMaximal →
+      (letI := algRing t h; w.ramificationIdx (coordRing F t (fnTY F t y))) = 1) →
+    ∀ g : Hom (ofSubfieldScheme t ht L) (hemiTY F t y ht),
+      g.f = ringMap t (bot_le : (⊥ : IntermediateField (K₀ F t) Ω) ≤ L)
+
+variable {k : Type u} [Field k] [CharZero k] {E : WeierstrassCurve k} [E.IsElliptic]
+  [Algebra k Ω] [IsAlgClosed Ω] (j : E.toAffine.FunctionField →ₐ[k] Ω)
+
+instance finiteDimensional_fnTY_tE : FiniteDimensional (K₀ k (tE j)) (fnTY k (tE j) (yE j)) :=
+  finiteDimensional_fnFieldE j
+
+instance isSeparable_fnTY_tE : Algebra.IsSeparable (K₀ k (tE j)) (fnTY k (tE j) (yE j)) :=
+  isSeparable_fnFieldE j
+
+instance normal_fnTY_tE : Normal (K₀ k (tE j)) (fnTY k (tE j) (yE j)) :=
+  normal_fnFieldE j
+
+example : hemiE j = hemiTY k (tE j) (yE j) (transcendental_tE j) := rfl
+
+theorem sOmega_iff_sOmegaTY : SOmega j ↔ SOmegaTY k (tE j) (yE j) := by
+  constructor
+  · intro h ht _ _ L _ _ hL het g
+    exact h L hL het g
+  · intro h L _ _ hL het g
+    exact h (transcendental_tE j) L hL het g
+
+end SOmegaTY
 
 end AffOrbicurve
