@@ -19,6 +19,7 @@ public import Pi1.Mathlib.RingTheory.RingHom.Finite
 public import Pi1.Mathlib.RingTheory.RingHom.Smooth
 public import Pi1.Mathlib.RingTheory.TensorProduct.Basic
 public import Pi1.Orbicurve.Core
+public import Pi1.Orbicurve.CoreCriterion
 public import Pi1.Orbicurve.Elliptic
 public import Pi1.Orbicurve.Embed
 public import Pi1.Orbicurve.EtaleInertia
