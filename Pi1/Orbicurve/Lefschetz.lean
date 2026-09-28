@@ -410,4 +410,146 @@ theorem sOmega_iff_sOmegaTY : SOmega j ↔ SOmegaTY k (tE j) (yE j) := by
 
 end SOmegaTY
 
+section SMap
+
+variable {F Ω : Type u} [Field F] [Field Ω] [Algebra F Ω] {t s : Ω}
+  (ht : Transcendental F t) (hs : Transcendental F s)
+
+/-- `F[t] ≅ F[s]`, `t ↦ s`. -/
+noncomputable def lineEquiv :
+    coordRing F t (⊥ : IntermediateField (K₀ F t) Ω) ≃ₐ[F]
+      coordRing F s (⊥ : IntermediateField (K₀ F s) Ω) :=
+  (coordRingBotEquiv ht).symm.trans (coordRingBotEquiv hs)
+
+lemma lineEquiv_apply (p : F[X]) :
+    lineEquiv ht hs (coordRingBotEquiv ht p) = coordRingBotEquiv hs p := by
+  simp [lineEquiv]
+
+variable {L : IntermediateField (K₀ F t) Ω} (hsL : s ∈ L) (hst : IsIntegral (A₀ F t) s)
+  (hts : IsIntegral (A₀ F s) t)
+
+/-- **The map of coordinate rings `F[t] → coordRing L`, `t ↦ s`.** -/
+noncomputable def sHomRing :
+    coordRing F t (⊥ : IntermediateField (K₀ F t) Ω) →+* coordRing F t L :=
+  (rebaseEquiv (hs := hsL) hst hts).symm.toRingHom.comp
+    ((ringMap s (bot_le : (⊥ : IntermediateField (K₀ F s) Ω) ≤ rebase L hsL)).toRingHom.comp
+      (lineEquiv ht hs).toRingEquiv.toRingHom)
+
+lemma coordRingVal_sHomRing (a : coordRing F t (⊥ : IntermediateField (K₀ F t) Ω)) :
+    coordRingVal t (sHomRing ht hs hsL hst hts a) = coordRingVal s (lineEquiv ht hs a) := by
+  rw [← coordRingVal_rebaseEquiv (hs := hsL) hst hts, sHomRing, RingHom.comp_apply,
+    RingEquiv.toRingHom_eq_coe, RingEquiv.coe_toRingHom, RingEquiv.apply_symm_apply]
+  rfl
+
+lemma coordRingVal_sHomRing_poly (p : F[X]) :
+    coordRingVal t (sHomRing ht hs hsL hst hts (coordRingBotEquiv ht p)) = aeval s p := by
+  rw [coordRingVal_sHomRing, lineEquiv_apply]
+  exact coe_coordRingBotEquiv hs p
+
+/-- **The map of coordinate rings `F[t] → coordRing L`, `t ↦ s`**, as an `F`-algebra map. -/
+noncomputable def sHom :
+    coordRing F t (⊥ : IntermediateField (K₀ F t) Ω) →ₐ[F] coordRing F t L :=
+  { sHomRing ht hs hsL hst hts with
+    commutes' := fun c => by
+      apply coordRingVal_injective t
+      change coordRingVal t (sHomRing ht hs hsL hst hts (algebraMap F _ c)) = _
+      have : algebraMap F (coordRing F t (⊥ : IntermediateField (K₀ F t) Ω)) c =
+          coordRingBotEquiv ht (Polynomial.C c) := by
+        rw [← Polynomial.algebraMap_eq, AlgEquiv.commutes]
+      rw [this, coordRingVal_sHomRing_poly, aeval_C]
+      rfl }
+
+lemma sHom_apply (a) : sHom ht hs hsL hst hts a = sHomRing ht hs hsL hst hts a := rfl
+
+lemma sHom_injective : Function.Injective (sHom ht hs hsL hst hts) := by
+  intro a b hab
+  have h := congrArg (coordRingVal t) hab
+  rw [sHom_apply, sHom_apply, coordRingVal_sHomRing, coordRingVal_sHomRing] at h
+  exact (lineEquiv ht hs).injective (coordRingVal_injective s h)
+
+lemma sHom_isIntegral : (sHom ht hs hsL hst hts).toRingHom.IsIntegral := by
+  change (sHomRing ht hs hsL hst hts).IsIntegral
+  unfold sHomRing
+  refine RingHom.IsIntegral.trans _ _ (RingHom.IsIntegral.trans _ _ ?_ ?_) ?_
+  · exact RingHom.IsIntegral.of_finite (RingHom.Finite.of_surjective _ (lineEquiv ht hs).surjective)
+  · exact ringMap_isIntegral s _
+  · exact RingHom.IsIntegral.of_finite
+      (RingHom.Finite.of_surjective _ (rebaseEquiv (hs := hsL) hst hts).symm.surjective)
+
+include ht in
+lemma algHom_bot_ext {B : Type*} [CommRing B] [Algebra F B]
+    {f g : coordRing F t (⊥ : IntermediateField (K₀ F t) Ω) →ₐ[F] B}
+    (h : f (coordRingBotEquiv ht Polynomial.X) = g (coordRingBotEquiv ht Polynomial.X)) : f = g := by
+  have : f.comp (coordRingBotEquiv ht).toAlgHom = g.comp (coordRingBotEquiv ht).toAlgHom :=
+    Polynomial.algHom_ext h
+  ext a
+  obtain ⟨p, rfl⟩ := (coordRingBotEquiv ht).surjective a
+  exact congrArg (fun φ : F[X] →ₐ[F] B => φ p) this
+
+variable [CharZero F] [FiniteDimensional (K₀ F t) L]
+
+set_option maxHeartbeats 1000000 in
+set_option synthInstance.maxHeartbeats 400000 in
+/-- **Étaleness of `t ↦ s` in terms of the `s`-line**. -/
+lemma etale_sHom_iff (m : Ideal (coordRing F t (⊥ : IntermediateField (K₀ F t) Ω)) → ℕ) :
+    (∀ w : Ideal (coordRing F t L), w.IsMaximal →
+      (letI := (sHom ht hs hsL hst hts).toRingHom.toAlgebra;
+        w.ramificationIdx (coordRing F t (⊥ : IntermediateField (K₀ F t) Ω))) * 1 =
+        m (w.comap (sHom ht hs hsL hst hts))) ↔
+    (∀ ws : Ideal (coordRing F s (rebase L hsL)), ws.IsMaximal →
+      (letI := algRing s (bot_le : (⊥ : IntermediateField (K₀ F s) Ω) ≤ rebase L hsL);
+        ws.ramificationIdx (coordRing F s (⊥ : IntermediateField (K₀ F s) Ω))) * 1 =
+        m ((ws.comap (ringMap s (bot_le : (⊥ : IntermediateField (K₀ F s) Ω) ≤ rebase L hsL))).comap
+          (lineEquiv ht hs).toRingEquiv.toRingHom)) := by
+  haveI : FiniteDimensional (K₀ F s) (rebase L hsL) := finiteDimensional_rebase (hs := hsL) hts
+  haveI : CharZero (K₀ F s) := charZero_of_injective_algebraMap (algebraMap F (K₀ F s)).injective
+  haveI : Algebra.IsSeparable (K₀ F s) (rebase L hsL) :=
+    Algebra.IsAlgebraic.isSeparable_of_perfectField
+  haveI : CharZero (K₀ F t) := charZero_of_injective_algebraMap (algebraMap F (K₀ F t)).injective
+  haveI : Algebra.IsSeparable (K₀ F t) L := Algebra.IsAlgebraic.isSeparable_of_perfectField
+  haveI := isDedekindDomain_ring t ht L
+  haveI := isDedekindDomain_ring t ht (⊥ : IntermediateField (K₀ F t) Ω)
+  haveI := isDedekindDomain_ring s hs (rebase L hsL)
+  haveI := isDedekindDomain_ring s hs (⊥ : IntermediateField (K₀ F s) Ω)
+  set β := rebaseEquiv (hs := hsL) hst hts
+  have hcompat : ∀ r, β ((sHom ht hs hsL hst hts).toRingHom r) =
+      (ringMap s (bot_le : (⊥ : IntermediateField (K₀ F s) Ω) ≤ rebase L hsL)).toRingHom
+        ((lineEquiv ht hs).toRingEquiv r) := by
+    intro r
+    change β (β.symm _) = _
+    rw [RingEquiv.apply_symm_apply]
+    rfl
+  have he : ∀ w : Ideal (coordRing F t L), w.IsPrime →
+      (letI := (sHom ht hs hsL hst hts).toRingHom.toAlgebra;
+        w.ramificationIdx (coordRing F t (⊥ : IntermediateField (K₀ F t) Ω))) =
+      (letI := algRing s (bot_le : (⊥ : IntermediateField (K₀ F s) Ω) ≤ rebase L hsL);
+        (w.comap β.symm.toRingHom).ramificationIdx
+          (coordRing F s (⊥ : IntermediateField (K₀ F s) Ω))) := by
+    intro w hw
+    exact ramificationIdx_congr (sHom ht hs hsL hst hts).toRingHom
+      (ringMap s (bot_le : (⊥ : IntermediateField (K₀ F s) Ω) ≤ rebase L hsL)).toRingHom
+      (lineEquiv ht hs).toRingEquiv β hcompat (ringMap_injective s _) w
+  have hc : ∀ w : Ideal (coordRing F t L),
+      ((w.comap β.symm.toRingHom).comap
+        (ringMap s (bot_le : (⊥ : IntermediateField (K₀ F s) Ω) ≤ rebase L hsL))).comap
+          (lineEquiv ht hs).toRingEquiv.toRingHom = w.comap (sHom ht hs hsL hst hts) := by
+    intro w; ext x; exact Iff.rfl
+  constructor
+  · intro H ws hws
+    set w := ws.comap β.toRingHom
+    haveI : w.IsMaximal := Ideal.comap_isMaximal_of_surjective _ β.surjective
+    have hws' : ws = w.comap β.symm.toRingHom := (comap_comap_symm β.symm ws).symm
+    have := H w inferInstance
+    rw [he w inferInstance] at this
+    rw [hws', hc]
+    exact this
+  · intro H w hw
+    have := H (w.comap β.symm.toRingHom)
+      (Ideal.comap_isMaximal_of_surjective _ β.symm.surjective)
+    rw [hc] at this
+    rw [he w hw.isPrime]
+    exact this
+
+end SMap
+
 end AffOrbicurve
