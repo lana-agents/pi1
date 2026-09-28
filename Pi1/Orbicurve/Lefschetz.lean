@@ -552,4 +552,99 @@ lemma etale_sHom_iff (m : Ideal (coordRing F t (⊥ : IntermediateField (K₀ F 
 
 end SMap
 
+section BCAux
+
+variable {k K Ω : Type u} [Field k] [Field K] [Field Ω] [Algebra k K] [Algebra K Ω] [Algebra k Ω]
+  [IsScalarTower k K Ω]
+
+omit [Algebra k K] [Algebra k Ω] [IsScalarTower k K Ω] in
+/-- Changing the parameter of a compositum. -/
+lemma adjoin_param_le {u v : Ω} {S : Set Ω}
+    (hu : u ∈ IntermediateField.adjoin (K₀ K v) S) {x : Ω}
+    (hx : x ∈ IntermediateField.adjoin (K₀ K u) S) : x ∈ IntermediateField.adjoin (K₀ K v) S := by
+  rw [← IntermediateField.mem_restrictScalars K, IntermediateField.restrictScalars_adjoin] at hx ⊢
+  refine (IntermediateField.adjoin_le_iff.mpr ?_) hx
+  rintro z (hz | hz)
+  · have : K₀ K u ≤ IntermediateField.adjoin K ((K₀ K v : Set Ω) ∪ S) := by
+      rw [IntermediateField.adjoin_simple_le_iff, ← IntermediateField.restrictScalars_adjoin,
+        IntermediateField.mem_restrictScalars]
+      exact hu
+    exact this hz
+  · exact IntermediateField.subset_adjoin _ _ (Or.inr hz)
+
+variable [IsAlgClosed Ω] [CharZero k] {t : Ω}
+
+lemma finiteDimensional_bc (htK : Transcendental K t) (L : IntermediateField (K₀ k t) Ω)
+    [FiniteDimensional (K₀ k t) L] :
+    FiniteDimensional (K₀ K t) (IntermediateField.adjoin (K₀ K t) (L : Set Ω)) := by
+  obtain ⟨N, N', hLN, _, _, _, _, hNN', hN'⟩ := exists_galois_bc htK L
+  have hle : IntermediateField.adjoin (K₀ K t) (L : Set Ω) ≤ N' := by
+    rw [hN']
+    exact IntermediateField.adjoin.mono _ _ _ hLN
+  exact FiniteDimensional.of_injective (IntermediateField.inclusion hle).toLinearMap
+    (IntermediateField.inclusion hle).injective
+
+omit [IsAlgClosed Ω] [CharZero k] in
+lemma lineEquiv_bcMap {s : Ω} (htk : Transcendental k t) (hsk : Transcendental k s)
+    (htK : Transcendental K t) (hsK : Transcendental K s)
+    (a : coordRing k t (⊥ : IntermediateField (K₀ k t) Ω)) :
+    lineEquiv htK hsK (bcMap (bot_mem_bc (k := k) (K := K) (t := t)) a) =
+      bcMap (bot_mem_bc (k := k) (K := K) (t := s)) (lineEquiv htk hsk a) := by
+  obtain ⟨q, rfl⟩ := (coordRingBotEquiv htk).surjective a
+  rw [bcMap_coordRingBotEquiv htk htK, lineEquiv_apply, lineEquiv_apply,
+    bcMap_coordRingBotEquiv hsk hsK]
+
+end BCAux
+
+section HomAux
+
+variable {F Ω : Type u} [Field F] [Field Ω] [Algebra F Ω] {t : Ω} (ht : Transcendental F t)
+  {L : IntermediateField (K₀ F t) Ω}
+  (f : coordRing F t (⊥ : IntermediateField (K₀ F t) Ω) →ₐ[F] coordRing F t L)
+
+lemma coordRingVal_aeval (a : coordRing F t L) (p : F[X]) :
+    coordRingVal t (aeval a p) = aeval (coordRingVal t a) p := by
+  induction p using Polynomial.induction_on with
+  | C c =>
+    rw [aeval_C, aeval_C]
+    rfl
+  | add p q hp hq => rw [map_add, map_add, map_add, hp, hq]
+  | monomial n c ih =>
+    rw [pow_succ, ← mul_assoc, map_mul (aeval a), map_mul, map_mul (aeval (coordRingVal t a)),
+      ih, aeval_X, aeval_X]
+
+lemma coordRingVal_algHom_bot (p : F[X]) :
+    coordRingVal t (f (coordRingBotEquiv ht p)) =
+      aeval (coordRingVal t (f (coordRingBotEquiv ht Polynomial.X))) p := by
+  have h1 : (f.comp (coordRingBotEquiv ht).toAlgHom) =
+      aeval ((f.comp (coordRingBotEquiv ht).toAlgHom) Polynomial.X) :=
+    Polynomial.algHom_ext (by rw [aeval_X])
+  have h2 := congrArg (fun φ : F[X] →ₐ[F] coordRing F t L => φ p) h1
+  change f (coordRingBotEquiv ht p) = aeval (f (coordRingBotEquiv ht Polynomial.X)) p at h2
+  rw [h2, coordRingVal_aeval]
+
+include ht in
+/-- If `t ↦ s` makes the coordinate ring of `L` integral over `F[t]`, then `t` is integral over
+`F[s]`. -/
+lemma isIntegral_of_algHom (hf : f.toRingHom.IsIntegral) :
+    IsIntegral (A₀ F (coordRingVal t (f (coordRingBotEquiv ht Polynomial.X)))) t := by
+  set s := coordRingVal t (f (coordRingBotEquiv ht Polynomial.X))
+  let φ : coordRing F t (⊥ : IntermediateField (K₀ F t) Ω) →+* A₀ F s :=
+    ((coordRingVal t).comp f.toRingHom).codRestrict (A₀ F s).toSubring (fun a => by
+      obtain ⟨p, rfl⟩ := (coordRingBotEquiv ht).surjective a
+      change coordRingVal t (f (coordRingBotEquiv ht p)) ∈ A₀ F s
+      rw [coordRingVal_algHom_bot]
+      exact Polynomial.aeval_mem_adjoin_singleton F s)
+  let tL : coordRing F t L := ringMap t (bot_le : (⊥ : IntermediateField (K₀ F t) Ω) ≤ L)
+    (coordRingBotEquiv ht Polynomial.X)
+  obtain ⟨p, hp, hpt⟩ := hf tL
+  refine ⟨p.map φ, hp.map _, ?_⟩
+  rw [Polynomial.eval₂_map]
+  have htL : coordRingVal t tL = t := coe_coordRingBotEquiv ht Polynomial.X |>.trans (by simp)
+  have := Polynomial.hom_eval₂ p f.toRingHom (coordRingVal t) tL
+  rw [hpt, map_zero, htL] at this
+  exact this.symm
+
+end HomAux
+
 end AffOrbicurve
