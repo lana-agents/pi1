@@ -112,6 +112,18 @@ lemma mem_fixingSubgroup_of_forall [FiniteDimensional (K₀ k t) F] (σ : Ω ≃
   change algebraMap (CoordRing k t F) Ω a / algebraMap (CoordRing k t F) Ω b = y at hy'
   rw [← hy', map_div₀, h a, h b]
 
+/-- The coordinate ring is a `k`-algebra (through `k[t] ⊆ coordRing`). -/
+instance algebraK (F : IntermediateField (K₀ k t) Ω) : Algebra k (CoordRing k t F) :=
+  ((algebraMap (A₀ k t) (CoordRing k t F)).comp (algebraMap k (A₀ k t))).toAlgebra
+
+instance isScalarTowerK (F : IntermediateField (K₀ k t) Ω) :
+    IsScalarTower k (CoordRing k t F) Ω :=
+  IsScalarTower.of_algebraMap_eq fun c => by
+    change _ = algebraMap (CoordRing k t F) Ω
+      (algebraMap (A₀ k t) (CoordRing k t F) (algebraMap k (A₀ k t) c))
+    rw [← IsScalarTower.algebraMap_apply]
+    rfl
+
 end CoordRing
 
 lemma isIntegral_aut (σ : Ω ≃ₐ[K₀ k t] Ω) {x : Ω} (hx : IsIntegral (A₀ k t) x) :
@@ -231,6 +243,16 @@ instance : MulSemiringAction D.A D.R :=
 
 lemma algebraMap_smul (h : D.H) (r : D.R) :
     algebraMap D.R Ω ((h : D.A) • r) = (h : Ω ≃ₐ[K₀ k t] Ω) (algebraMap D.R Ω r) := rfl
+
+/-- The finite group `A = H ⧸ H_L` acts `k`-linearly on `R`. -/
+instance smulCommClassK : SMulCommClass D.A k D.R where
+  smul_comm a c r := by
+    obtain ⟨h, rfl⟩ := QuotientGroup.mk_surjective a
+    rw [Algebra.smul_def, Algebra.smul_def, smul_mul']
+    congr 1
+    refine CoordRing.ext ?_
+    rw [GaloisData.algebraMap_smul, ← IsScalarTower.algebraMap_apply]
+    exact (h : Ω ≃ₐ[K₀ k t] Ω).commutes ⟨_, (K₀ k t).algebraMap_mem c⟩
 
 /-- **The inertia elements** at the places of `Ω` centered on `Spec R`: the elements of `H_L`
 lying in the inertia group of a valuation subring `W ⊆ Ω` containing `k` and `t`. -/
