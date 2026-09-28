@@ -24,6 +24,7 @@ public import Pi1.Orbicurve.Embed
 public import Pi1.Orbicurve.EtaleInertia
 public import Pi1.Orbicurve.GaloisPi1
 public import Pi1.Orbicurve.IntegralClosure
+public import Pi1.Orbicurve.Iso
 public import Pi1.Orbicurve.Morphisms
 public import Pi1.Orbicurve.Pullback
 public import Pi1.Orbicurve.Subfield
