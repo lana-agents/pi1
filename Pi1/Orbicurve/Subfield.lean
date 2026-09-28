@@ -10,11 +10,13 @@ public import Mathlib.RingTheory.Algebraic.Basic
 
 Let `Ω` be a field over `k`, `t ∈ Ω` transcendental over `k`, `A₀ = k[t] ⊆ Ω` and
 `K₀ = k(t) ⊆ Ω`. For an intermediate field `K₀ ⊆ L ⊆ Ω`, finite and separable over `K₀`, the
-integral closure `coordRing k t L` of `k[t]` in `L` is the coordinate ring of the normalization of the
+integral closure `coordRing k t L` of `k[t]` in `L` is the coordinate ring of the normalization of
+the
 `t`-line in `L` (a smooth affine curve with function field `L`). With stabilizer orders `m` this
 is the affine orbicurve `AffOrbicurve.ofSubfield t L m`.
 
-For `L ⊆ L'` the inclusion induces `ringMap : coordRing k t L → coordRing k t L'` (injective and integral), and
+For `L ⊆ L'` the inclusion induces `ringMap : coordRing k t L → coordRing k t L'` (injective and
+integral), and
 `AffOrbicurve.homOfLE` is the resulting finite étale morphism when the multiplicity condition
 holds.
 -/
@@ -33,7 +35,8 @@ variable {k Ω : Type u} [Field k] [Field Ω] [Algebra k Ω] (t : Ω)
 abbrev A₀ (k : Type u) [Field k] [Algebra k Ω] (t : Ω) : Subalgebra k Ω := Algebra.adjoin k {t}
 
 /-- `k(t) ⊆ Ω`. -/
-abbrev K₀ (k : Type u) [Field k] [Algebra k Ω] (t : Ω) : IntermediateField k Ω := IntermediateField.adjoin k {t}
+abbrev K₀ (k : Type u) [Field k] [Algebra k Ω] (t : Ω) : IntermediateField k Ω :=
+IntermediateField.adjoin k {t}
 
 variable {t} (ht : Transcendental k t)
 
@@ -61,7 +64,8 @@ variable (t)
 
 /-- **The coordinate ring** of the normalization of the `t`-line in `L`: the integral closure of
 `k[t]` in `L`. -/
-abbrev coordRing (k : Type u) [Field k] [Algebra k Ω] (t : Ω) (L : IntermediateField (K₀ k t) Ω) : Subalgebra (A₀ k t) L := integralClosure (A₀ k t) L
+abbrev coordRing (k : Type u) [Field k] [Algebra k Ω] (t : Ω) (L : IntermediateField (K₀ k t) Ω) :
+Subalgebra (A₀ k t) L := integralClosure (A₀ k t) L
 
 section Instances
 

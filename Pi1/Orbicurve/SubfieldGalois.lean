@@ -15,7 +15,8 @@ coordinate ring `coordRing k t N` over `coordRing k t F` (`isGaloisGroup_fixSub`
 
   `e(u | v) = |I_u(N / F)|`, `e(u | w) = |I_u(N / F) ∩ Gal(N / L)|`,
 
-so `e(w | v) = 1` if and only if the inertia group `I_u(N / F)` fixes `L` (`ramificationIdx_eq_one_iff`).
+so `e(w | v) = 1` if and only if the inertia group `I_u(N / F)` fixes `L`
+(`ramificationIdx_eq_one_iff`).
 -/
 
 @[expose] public section
@@ -133,6 +134,7 @@ lemma module_finite_ringMap (hFN : F ≤ N) :
   exact Module.Finite.of_restrictScalars_finite (A₀ k t) _ _
 
 include ht in
+set_option maxHeartbeats 1000000 in
 /-- **`e(u | v) = |I_u(N / F)|`**. -/
 theorem ramificationIdx_eq_card_inertia (hFN : F ≤ N) (u : Ideal (coordRing k t N))
     [hu : u.IsMaximal] :
@@ -164,7 +166,8 @@ theorem ramificationIdx_eq_card_inertia (hFN : F ≤ N) (u : Ideal (coordRing k 
   rw [← Ideal.ramificationIdxIn_eq_ramificationIdx v u (fixSub t N F),
     ← Ideal.card_inertia_eq_ramificationIdxIn (G := fixSub t N F) v u]
   change Nat.card (u.toAddSubgroup.inertia (fixSub t N F)) = _
-  rw [← AddSubgroup.inertia_map_subtype, Subgroup.card_map_of_injective (Subgroup.subtype_injective _)]
+  rw [← AddSubgroup.inertia_map_subtype,
+    Subgroup.card_map_of_injective (Subgroup.subtype_injective _)]
 
 include ht in
 /-- **Unramifiedness via inertia**: for `F ⊆ L ⊆ N` and a maximal ideal `u` of the coordinate ring
