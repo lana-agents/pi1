@@ -494,6 +494,257 @@ lemma card_inertia_le (u' : Ideal (coordRing K t N')) [hu' : u'.IsMaximal]
   rw [hcomap]
   exact exists_mem_not_mem_sq htk htK v' hv'0 hv0
 
+omit [Normal (K₀ k t) N] [FiniteDimensional (K₀ k t) N] [CharZero k] [IsGalois (K₀ k t) N]
+  [FiniteDimensional (K₀ K t) N'] [IsGalois (K₀ K t) N'] in
+/-- An automorphism of `N'` over `K(t)` fixing `S` fixes `K(t)(S)`. -/
+lemma fix_adjoin (σ' : N' ≃ₐ[K₀ K t] N') {S : Set Ω} (hS : ∀ x ∈ S, x ∈ N')
+    (h : ∀ x : N', (x : Ω) ∈ S → σ' x = x) (x : N')
+    (hx : (x : Ω) ∈ IntermediateField.adjoin (K₀ K t) S) : σ' x = x := by
+  let T : IntermediateField (K₀ K t) Ω :=
+    (IntermediateField.fixedField (Subgroup.zpowers σ')).map N'.val
+  have hT : IntermediateField.adjoin (K₀ K t) S ≤ T := by
+    rw [IntermediateField.adjoin_le_iff]
+    intro y hy
+    refine ⟨⟨y, hS y hy⟩, ?_, rfl⟩
+    rintro ⟨τ, n, rfl⟩
+    change (σ' ^ n) _ = _
+    induction n using Int.induction_on with
+    | zero => rfl
+    | succ n ih =>
+      rw [zpow_add_one, AlgEquiv.mul_apply, h _ hy]; exact ih
+    | pred n ih =>
+      rw [zpow_sub_one, AlgEquiv.mul_apply]
+      have : σ'⁻¹ ⟨y, hS y hy⟩ = ⟨y, hS y hy⟩ := by
+        conv_lhs => rw [← h ⟨y, hS y hy⟩ hy]
+        exact σ'.symm_apply_apply _
+      rw [this]; exact ih
+  obtain ⟨z, hz, hzx⟩ := hT hx
+  have : z = x := Subtype.ext hzx
+  subst this
+  exact (IntermediateField.mem_fixedField_iff _ _).mp hz σ' (Subgroup.mem_zpowers σ')
+
+omit [FiniteDimensional (K₀ k t) N] [CharZero k] [IsGalois (K₀ k t) N]
+  [FiniteDimensional (K₀ K t) N'] [IsGalois (K₀ K t) N'] in
+/-- `Gal(N' / F') = res⁻¹ Gal(N / F)` for `F' = K(t) · F`. -/
+lemma mem_fixSub_iff_res {F : IntermediateField (K₀ k t) Ω} {F' : IntermediateField (K₀ K t) Ω}
+    (hFN : F ≤ N) (hF : ∀ x ∈ F, x ∈ F') (hF' : F' ≤ IntermediateField.adjoin (K₀ K t) (F : Set Ω))
+    (σ' : N' ≃ₐ[K₀ K t] N') : σ' ∈ fixSub t N' F' ↔ res hN σ' ∈ fixSub t N F := by
+  constructor
+  · intro h x hx
+    apply Subtype.ext
+    rw [coe_res_apply]
+    exact congrArg Subtype.val (h ⟨x, hN x x.2⟩ (hF _ hx))
+  · intro h x hx
+    refine fix_adjoin σ' (fun y hy => hN y (hFN hy)) (fun y hy => ?_) x (hF' hx)
+    have := congrArg Subtype.val (h ⟨y, hFN hy⟩ hy)
+    rw [coe_res_apply] at this
+    exact Subtype.ext this
+
+set_option maxHeartbeats 1000000 in
+set_option synthInstance.maxHeartbeats 400000 in
+include htK in
+/-- **Restriction identifies the inertia groups** `I_{u'} ≅ I_{u' ∩ N}` (for `u' ∩ N ≠ 0`). -/
+lemma map_res_inertia (hN' : N' ≤ IntermediateField.adjoin (K₀ K t) (N : Set Ω))
+    (u' : Ideal (coordRing K t N')) [u'.IsMaximal] (hu : u'.comap (bcMap hN) ≠ ⊥) :
+    (u'.inertia (N' ≃ₐ[K₀ K t] N')).map (res hN) =
+      (u'.comap (bcMap hN)).inertia (N ≃ₐ[K₀ k t] N) := by
+  have hle : (u'.inertia (N' ≃ₐ[K₀ K t] N')).map (res hN) ≤
+      (u'.comap (bcMap hN)).inertia (N ≃ₐ[K₀ k t] N) := by
+    rintro _ ⟨σ', hσ', rfl⟩
+    exact res_mem_inertia hN u' σ' hσ'
+  apply Subgroup.eq_of_le_of_card_ge hle
+  rw [Subgroup.card_map_of_injective (res_injective hN hN')]
+  exact card_inertia_le hN htK u' hu
+
+set_option maxHeartbeats 1000000 in
+set_option synthInstance.maxHeartbeats 400000 in
+include htK in
+lemma card_inertia_inf_fixSub (hN' : N' ≤ IntermediateField.adjoin (K₀ K t) (N : Set Ω))
+    {F : IntermediateField (K₀ k t) Ω} {F' : IntermediateField (K₀ K t) Ω}
+    (hFN : F ≤ N) (hF : ∀ x ∈ F, x ∈ F') (hF' : F' ≤ IntermediateField.adjoin (K₀ K t) (F : Set Ω))
+    (u' : Ideal (coordRing K t N')) [u'.IsMaximal] (hu : u'.comap (bcMap hN) ≠ ⊥) :
+    Nat.card (u'.inertia (N' ≃ₐ[K₀ K t] N') ⊓ fixSub t N' F' : Subgroup _) =
+      Nat.card ((u'.comap (bcMap hN)).inertia (N ≃ₐ[K₀ k t] N) ⊓ fixSub t N F : Subgroup _) := by
+  rw [← Subgroup.card_map_of_injective (res_injective hN hN')]
+  have hmap : (u'.inertia (N' ≃ₐ[K₀ K t] N') ⊓ fixSub t N' F' : Subgroup _).map (res hN) =
+      (u'.comap (bcMap hN)).inertia (N ≃ₐ[K₀ k t] N) ⊓ fixSub t N F := by
+    rw [← map_res_inertia hN htK hN' u' hu]
+    ext τ
+    simp only [Subgroup.mem_map, Subgroup.mem_inf]
+    constructor
+    · rintro ⟨σ', ⟨h1, h2⟩, rfl⟩
+      exact ⟨⟨σ', h1, rfl⟩, (mem_fixSub_iff_res hN hFN hF hF' σ').mp h2⟩
+    · rintro ⟨⟨σ', h1, rfl⟩, h2⟩
+      exact ⟨σ', ⟨h1, (mem_fixSub_iff_res hN hFN hF hF' σ').mpr h2⟩, rfl⟩
+  rw [hmap]
+
 end Inertia
+
+section Closure
+
+variable {t} [IsAlgClosed Ω] [CharZero k]
+
+lemma rootSet_map_K₀Map (p : (K₀ k t)[X]) :
+    (p.map (K₀Map (K := K) t)).rootSet Ω = p.rootSet Ω := by
+  classical
+  rw [Polynomial.rootSet_def, Polynomial.rootSet_def, Polynomial.aroots_def,
+    Polynomial.aroots_def, Polynomial.map_map]
+  rfl
+
+/-- **Galois closures and their base changes**: every finite extension `F` of `k(t)` in `Ω` lies in
+a finite Galois extension `N` of `k(t)` whose compositum `N' = K(t) · N` is finite Galois over
+`K(t)`. -/
+theorem exists_galois_bc (htK : Transcendental K t) (F : IntermediateField (K₀ k t) Ω)
+    [FiniteDimensional (K₀ k t) F] :
+    ∃ (N : IntermediateField (K₀ k t) Ω) (N' : IntermediateField (K₀ K t) Ω),
+      F ≤ N ∧ FiniteDimensional (K₀ k t) N ∧ IsGalois (K₀ k t) N ∧
+      FiniteDimensional (K₀ K t) N' ∧ IsGalois (K₀ K t) N' ∧ (∀ x ∈ N, x ∈ N') ∧
+      N' = IntermediateField.adjoin (K₀ K t) (N : Set Ω) := by
+  classical
+  haveI : CharZero (K₀ k t) := charZero_of_injective_algebraMap (algebraMap k (K₀ k t)).injective
+  haveI : CharZero K := charZero_of_injective_algebraMap (algebraMap k K).injective
+  haveI : CharZero (K₀ K t) := charZero_of_injective_algebraMap (algebraMap K (K₀ K t)).injective
+  obtain ⟨α, hα⟩ := Field.exists_primitive_element (K₀ k t) F
+  set θ : Ω := (α : Ω)
+  have hθint : IsIntegral (K₀ k t) θ :=
+    (IsIntegral.of_finite (K₀ k t) α).map (IsScalarTower.toAlgHom (K₀ k t) F Ω)
+  set p := minpoly (K₀ k t) θ
+  have hp0 : p ≠ 0 := minpoly.ne_zero hθint
+  set R := p.rootSet Ω
+  set N := IntermediateField.adjoin (K₀ k t) R
+  set p' := p.map (K₀Map (K := K) t)
+  have hp'0 : p' ≠ 0 := Polynomial.map_ne_zero hp0
+  set N' := IntermediateField.adjoin (K₀ K t) (p'.rootSet Ω)
+  have hR : p'.rootSet Ω = R := rootSet_map_K₀Map p
+  haveI hsN : p.IsSplittingField (K₀ k t) N :=
+    IntermediateField.adjoin_rootSet_isSplittingField (IsAlgClosed.splits _)
+  haveI hsN' : p'.IsSplittingField (K₀ K t) N' :=
+    IntermediateField.adjoin_rootSet_isSplittingField (IsAlgClosed.splits _)
+  haveI : FiniteDimensional (K₀ k t) N := Polynomial.IsSplittingField.finiteDimensional N p
+  haveI : FiniteDimensional (K₀ K t) N' := Polynomial.IsSplittingField.finiteDimensional N' p'
+  haveI : Normal (K₀ k t) N := Normal.of_isSplittingField p
+  haveI : Normal (K₀ K t) N' := Normal.of_isSplittingField p'
+  haveI : Algebra.IsSeparable (K₀ k t) N := Algebra.IsAlgebraic.isSeparable_of_perfectField
+  haveI : Algebra.IsSeparable (K₀ K t) N' := Algebra.IsAlgebraic.isSeparable_of_perfectField
+  have hθR : θ ∈ R := by
+    rw [Polynomial.mem_rootSet]
+    exact ⟨hp0, minpoly.aeval _ _⟩
+  have hFN : F ≤ N := by
+    intro x hx
+    have h1 : (⟨x, hx⟩ : F) ∈ (K₀ k t)⟮α⟯ := hα ▸ IntermediateField.mem_top
+    have h2 : x ∈ ((K₀ k t)⟮α⟯).map F.val := ⟨_, h1, rfl⟩
+    rw [IntermediateField.adjoin_map, Set.image_singleton] at h2
+    exact (IntermediateField.adjoin_simple_le_iff.mpr
+      (IntermediateField.subset_adjoin _ _ hθR)) h2
+  have hNN' : ∀ x ∈ N, x ∈ N' := by
+    let N'k : IntermediateField (K₀ k t) Ω :=
+      N'.toSubfield.toIntermediateField fun c => N'.algebraMap_mem (K₀Map (K := K) t c)
+    have : N ≤ N'k := by
+      rw [IntermediateField.adjoin_le_iff]
+      intro y hy
+      change y ∈ N'
+      rw [← hR] at hy
+      exact IntermediateField.subset_adjoin _ _ hy
+    exact fun x hx => this hx
+  refine ⟨N, N', hFN, inferInstance, IsGalois.mk, inferInstance, IsGalois.mk, hNN', ?_⟩
+  apply le_antisymm
+  · show IntermediateField.adjoin (K₀ K t) (p'.rootSet Ω) ≤ _
+    rw [hR]
+    exact IntermediateField.adjoin.mono _ _ _ (IntermediateField.subset_adjoin _ _)
+  · rw [IntermediateField.adjoin_le_iff]
+    exact fun x hx => hNN' x hx
+
+set_option maxHeartbeats 2000000 in
+set_option synthInstance.maxHeartbeats 400000 in
+/-- **Ramification indices are invariant under extension of the constant field.** Let
+`F₁ ⊆ F₂` be finite extensions of `k(t)` in `Ω` (algebraically closed) and `F₁' ⊆ F₂'` their
+composita with `K(t)`. For a maximal ideal `w'` of the coordinate ring of `F₂'`, the prime
+`w = w' ∩ coordRing F₂` is either `0`, and then `w'` is unramified over `F₁'`, or maximal, and then
+`e(w' | F₁') = e(w | F₁)`. -/
+theorem ramificationIdx_bc (htK : Transcendental K t)
+    {F₁ F₂ : IntermediateField (K₀ k t) Ω} {F₁' F₂' : IntermediateField (K₀ K t) Ω}
+    [FiniteDimensional (K₀ k t) F₂] (h : F₁ ≤ F₂) (h' : F₁' ≤ F₂')
+    (h₁ : ∀ x ∈ F₁, x ∈ F₁') (h₂ : ∀ x ∈ F₂, x ∈ F₂')
+    (h₁' : F₁' ≤ IntermediateField.adjoin (K₀ K t) (F₁ : Set Ω))
+    (h₂' : F₂' ≤ IntermediateField.adjoin (K₀ K t) (F₂ : Set Ω))
+    (w' : Ideal (coordRing K t F₂')) [hw' : w'.IsMaximal] :
+    (w'.comap (bcMap h₂) = ⊥ →
+      (letI := algRing t h'; w'.ramificationIdx (coordRing K t F₁')) = 1) ∧
+    (w'.comap (bcMap h₂) ≠ ⊥ → (w'.comap (bcMap h₂)).IsMaximal ∧
+      (letI := algRing t h'; w'.ramificationIdx (coordRing K t F₁')) =
+        (letI := algRing t h; (w'.comap (bcMap h₂)).ramificationIdx (coordRing k t F₁))) := by
+  have htk : Transcendental k t := transcendental_of_bc (K := K) htK
+  haveI : CharZero K := charZero_of_injective_algebraMap (algebraMap k K).injective
+  obtain ⟨N, N', hF₂N, _, _, _, _, hNN', hN'⟩ := exists_galois_bc htK F₂
+  have hF₂'N' : F₂' ≤ N' := by
+    rw [hN']
+    exact h₂'.trans (IntermediateField.adjoin.mono _ _ _ hF₂N)
+  haveI : FiniteDimensional (K₀ K t) F₂' :=
+    FiniteDimensional.of_injective (IntermediateField.inclusion hF₂'N').toLinearMap
+      (IntermediateField.inclusion hF₂'N').injective
+  haveI : Algebra.IsSeparable (K₀ K t) F₂' :=
+    Algebra.IsSeparable.of_algHom (F := K₀ K t) (E := F₂') (E' := N')
+      (IntermediateField.inclusion hF₂'N')
+  haveI : Algebra.IsSeparable (K₀ k t) F₂ :=
+    Algebra.IsSeparable.of_algHom (F := K₀ k t) (E := F₂) (E' := N)
+      (IntermediateField.inclusion hF₂N)
+  haveI := isDedekindDomain_ring t htk F₂
+  haveI := isDedekindDomain_ring t htk N
+  haveI := isDedekindDomain_ring t htK N'
+  -- a prime `u'` of `N'` over `w'`
+  obtain ⟨u', hu', hu'w⟩ : ∃ u' : Ideal (coordRing K t N'), u'.IsMaximal ∧
+      u'.comap (ringMap t hF₂'N') = w' := by
+    letI := algRing t hF₂'N'
+    haveI : Algebra.IsIntegral (coordRing K t F₂') (coordRing K t N') := ⟨ringMap_isIntegral t _⟩
+    have hker : RingHom.ker (algebraMap (coordRing K t F₂') (coordRing K t N')) ≤ w' := by
+      intro x hx
+      rw [RingHom.mem_ker] at hx
+      rw [show x = 0 from ringMap_injective t hF₂'N' (hx.trans (map_zero _).symm)]
+      exact zero_mem _
+    exact Ideal.exists_ideal_over_maximal_of_isIntegral w' hker
+  set u := u'.comap (bcMap hNN')
+  haveI : u.IsPrime := Ideal.comap_isPrime _ _
+  have hwu : w'.comap (bcMap h₂) = u.comap (ringMap t hF₂N) := by
+    rw [← hu'w]
+    ext x
+    exact Iff.rfl
+  have hu0 : w'.comap (bcMap h₂) = ⊥ ↔ u = ⊥ := by
+    constructor
+    · intro hw0
+      by_contra hne
+      letI := algRing t hF₂N
+      haveI : Algebra.IsIntegral (coordRing k t F₂) (coordRing k t N) := ⟨ringMap_isIntegral t _⟩
+      obtain ⟨x, hx, hx0⟩ := Submodule.exists_mem_ne_zero_of_ne_bot hne
+      exact Ideal.comap_ne_bot_of_integral_mem hx0 hx (Algebra.IsIntegral.isIntegral x)
+        (hwu ▸ hw0)
+    · intro hu
+      rw [hwu, hu]
+      exact Ideal.comap_bot_of_injective _ (ringMap_injective t hF₂N)
+  have hmc' := ramificationIdx_mul_card t htK h' hF₂'N' u'
+  rw [hu'w] at hmc'
+  refine ⟨fun hw0 => ?_, fun hw0 => ?_⟩
+  · -- `u' ∩ N = 0`: trivial inertia
+    have hI : u'.inertia (N' ≃ₐ[K₀ K t] N') = ⊥ := by
+      rw [eq_bot_iff]
+      intro σ' hσ'
+      exact inertia_eq_bot hNN' (le_of_eq hN') u' (hu0.mp hw0) σ' hσ'
+    rw [hI, bot_inf_eq, bot_inf_eq, Subgroup.card_bot, mul_one] at hmc'
+    exact hmc'
+  · have hune : u ≠ ⊥ := fun h0 => hw0 (hu0.mpr h0)
+    haveI hum : u.IsMaximal := Ideal.IsPrime.isMaximal inferInstance hune
+    refine ⟨?_, ?_⟩
+    · rw [hwu]
+      exact Ideal.isMaximal_comap_of_isIntegral_of_isMaximal' _ (ringMap_isIntegral t _) u
+    · have hmc := ramificationIdx_mul_card t htk h hF₂N u
+      rw [← hwu] at hmc
+      have c1 := card_inertia_inf_fixSub hNN' htK (le_of_eq hN') (h.trans hF₂N) h₁ h₁' u' hune
+      have c2 := card_inertia_inf_fixSub hNN' htK (le_of_eq hN') hF₂N h₂ h₂' u' hune
+      rw [c1, c2] at hmc'
+      rw [← hmc] at hmc'
+      have hpos : 0 < Nat.card (u.inertia (N ≃ₐ[K₀ k t] N) ⊓ fixSub t N F₂ : Subgroup _) :=
+        Nat.card_pos
+      exact Nat.eq_of_mul_eq_mul_right hpos hmc'
+
+end Closure
 
 end AffOrbicurve
