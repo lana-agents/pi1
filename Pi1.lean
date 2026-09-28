@@ -25,6 +25,7 @@ public import Pi1.Orbicurve.IntegralClosure
 public import Pi1.Orbicurve.Morphisms
 public import Pi1.Orbicurve.Subfield
 public import Pi1.Orbicurve.SubfieldGalois
+public import Pi1.Orbicurve.SubfieldRamified
 public import Pi1.RingTheory.FiniteEtale.Basic
 public import Pi1.RingTheory.FiniteEtale.Descent
 public import Pi1.RingTheory.FiniteEtale.Equalizer
