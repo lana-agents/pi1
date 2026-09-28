@@ -27,6 +27,7 @@ public import Pi1.Orbicurve.Morphisms
 public import Pi1.Orbicurve.Subfield
 public import Pi1.Orbicurve.SubfieldGalois
 public import Pi1.Orbicurve.SubfieldRamified
+public import Pi1.Orbicurve.TameInertia
 public import Pi1.Orbicurve.ValuationInertia
 public import Pi1.Orbifold.Comparison
 public import Pi1.Orbifold.Etale
