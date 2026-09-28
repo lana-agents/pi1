@@ -20,11 +20,13 @@ public import Pi1.Mathlib.RingTheory.RingHom.Smooth
 public import Pi1.Mathlib.RingTheory.TensorProduct.Basic
 public import Pi1.Orbicurve.Core
 public import Pi1.Orbicurve.Elliptic
+public import Pi1.Orbicurve.EtaleInertia
 public import Pi1.Orbicurve.GaloisPi1
 public import Pi1.Orbicurve.IntegralClosure
 public import Pi1.Orbicurve.Morphisms
 public import Pi1.Orbicurve.Subfield
 public import Pi1.Orbicurve.SubfieldGalois
+public import Pi1.Orbicurve.ValuationInertia
 public import Pi1.Orbifold.Etale
 public import Pi1.Orbifold.EtaleMathlib
 public import Pi1.Orbifold.EtaleProfinite
