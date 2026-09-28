@@ -211,4 +211,100 @@ theorem etale_of_bc [IsAlgClosed k]
 
 end Transfer
 
+section Rebase
+
+variable {k Ω : Type u} [Field k] [Field Ω] [Algebra k Ω]
+
+/-- The inclusion `k[s] → k[t][s]`. -/
+lemma isIntegral_A₀_trans {s t x : Ω} (hs : IsIntegral (A₀ k t) s) (hx : IsIntegral (A₀ k s) x) :
+    IsIntegral (A₀ k t) x := by
+  let R : Subalgebra (A₀ k t) Ω := Algebra.adjoin (A₀ k t) {s}
+  haveI : Algebra.IsIntegral (A₀ k t) R :=
+    Algebra.IsIntegral.adjoin (fun y hy => by rw [Set.mem_singleton_iff.mp hy]; exact hs)
+  have hle : ∀ y ∈ A₀ k s, y ∈ R := by
+    have : A₀ k s ≤ (R.restrictScalars k) := by
+      rw [Algebra.adjoin_le_iff, Set.singleton_subset_iff, SetLike.mem_coe,
+        Subalgebra.mem_restrictScalars]
+      exact Algebra.self_mem_adjoin_singleton _ s
+    exact fun y hy => this hy
+  let ι : A₀ k s →+* R :=
+    { toFun := fun a => ⟨a, hle a a.2⟩
+      map_one' := Subtype.ext (by simp)
+      map_mul' := fun _ _ => Subtype.ext (by simp)
+      map_zero' := Subtype.ext (by simp)
+      map_add' := fun _ _ => Subtype.ext (by simp) }
+  have hxR : IsIntegral R x := by
+    obtain ⟨p, hp, hpx⟩ := hx
+    refine ⟨p.map ι, hp.map _, ?_⟩
+    rw [Polynomial.eval₂_map]
+    exact hpx
+  exact isIntegral_trans x hxR
+
+lemma transcendental_of_isIntegral {s t : Ω} (ht : Transcendental k t)
+    (hts : IsIntegral (A₀ k s) t) : Transcendental k s := by
+  intro hs
+  apply ht
+  haveI : Algebra.IsIntegral k (A₀ k s) :=
+    Algebra.IsIntegral.adjoin (fun y hy => by rw [Set.mem_singleton_iff.mp hy]; exact hs.isIntegral)
+  exact (isIntegral_trans t hts).isAlgebraic
+
+variable {t : Ω} (F : IntermediateField (K₀ k t) Ω) {s : Ω} (hs : s ∈ F)
+
+include hs in
+lemma K₀_le_rebase : K₀ k s ≤ F.restrictScalars k := by
+  rw [IntermediateField.adjoin_le_iff, Set.singleton_subset_iff, SetLike.mem_coe,
+    IntermediateField.mem_restrictScalars]
+  exact hs
+
+/-- **`F` as an extension of `k(s)`**, for `s ∈ F`. -/
+noncomputable def rebase : IntermediateField (K₀ k s) Ω :=
+  IntermediateField.extendScalars (K₀_le_rebase F hs)
+
+lemma mem_rebase {x : Ω} : x ∈ rebase F hs ↔ x ∈ F := Iff.rfl
+
+variable {F hs}
+
+lemma range_coordRingVal_rebase (hst : IsIntegral (A₀ k t) s) (hts : IsIntegral (A₀ k s) t) :
+    (coordRingVal t (B := F)).range = (coordRingVal s (B := rebase F hs)).range := by
+  ext x
+  constructor
+  · rintro ⟨a, rfl⟩
+    exact ⟨⟨⟨a.1.1, (mem_rebase F hs).mpr a.1.2⟩, mem_coordRing_of_isIntegral s
+      (L := rebase F hs) ((mem_rebase F hs).mpr a.1.2)
+      (isIntegral_A₀_trans hts (isIntegral_of_mem_coordRing t a))⟩, rfl⟩
+  · rintro ⟨b, rfl⟩
+    exact ⟨⟨⟨b.1.1, (mem_rebase F hs).mp b.1.2⟩, mem_coordRing_of_isIntegral t (L := F)
+      ((mem_rebase F hs).mp b.1.2) (isIntegral_A₀_trans hst (isIntegral_of_mem_coordRing s b))⟩,
+      rfl⟩
+
+/-- The isomorphism of a coordinate ring with its image in `Ω`. -/
+noncomputable def coordRingRangeEquiv {u : Ω} (L : IntermediateField (K₀ k u) Ω) :
+    coordRing k u L ≃+* (coordRingVal u (B := L)).range :=
+  RingEquiv.ofBijective (coordRingVal u (B := L)).rangeRestrict
+    ⟨fun a b h => coordRingVal_injective u (by
+      have := congrArg Subtype.val h
+      rwa [RingHom.coe_rangeRestrict, RingHom.coe_rangeRestrict] at this),
+      (coordRingVal u (B := L)).rangeRestrict_surjective⟩
+
+lemma coe_coordRingRangeEquiv {u : Ω} (L : IntermediateField (K₀ k u) Ω) (a : coordRing k u L) :
+    ((coordRingRangeEquiv L a : (coordRingVal u (B := L)).range) : Ω) = coordRingVal u a :=
+  RingHom.coe_rangeRestrict _ _
+
+/-- The coordinate rings of `F` over the `t`-line and over the `s`-line agree when `s` is integral
+over `k[t]` and `t` over `k[s]`. -/
+noncomputable def rebaseEquiv (hst : IsIntegral (A₀ k t) s) (hts : IsIntegral (A₀ k s) t) :
+    coordRing k t F ≃+* coordRing k s (rebase F hs) :=
+  (coordRingRangeEquiv F).trans ((RingEquiv.subringCongr (range_coordRingVal_rebase hst hts)).trans
+    (coordRingRangeEquiv (rebase F hs)).symm)
+
+lemma coordRingVal_rebaseEquiv (hst : IsIntegral (A₀ k t) s) (hts : IsIntegral (A₀ k s) t)
+    (a : coordRing k t F) :
+    coordRingVal s (B := rebase F hs) (rebaseEquiv (hs := hs) hst hts a) = coordRingVal t a := by
+  rw [← coe_coordRingRangeEquiv, ← coe_coordRingRangeEquiv]
+  unfold rebaseEquiv
+  rw [RingEquiv.trans_apply, RingEquiv.trans_apply, RingEquiv.apply_symm_apply]
+  exact RingEquiv.coe_subringCongr_apply _ _
+
+end Rebase
+
 end AffOrbicurve
