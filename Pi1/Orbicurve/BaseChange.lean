@@ -31,6 +31,7 @@ the coordinate ring of `F` maps to that of `F_K` (`AffOrbicurve.bcMap`).
 universe u
 
 open Ideal IntermediateField IntermediateField.algebraAdjoinAdjoin Polynomial
+open scoped Pointwise
 
 namespace AffOrbicurve
 
@@ -880,6 +881,157 @@ theorem ramificationIdx_bc (htK : Transcendental K t)
       have hpos : 0 < Nat.card (u.inertia (N ≃ₐ[K₀ k t] N) ⊓ fixSub t N F₂ : Subgroup _) :=
         Nat.card_pos
       exact Nat.eq_of_mul_eq_mul_right hpos hmc'
+
+omit [IsAlgClosed Ω] in
+/-- **Restriction is surjective** when `k` is algebraically closed (`K(t) ∩ N = k(t)`). -/
+theorem res_surjective [IsAlgClosed k] (htK : Transcendental K t)
+    {N : IntermediateField (K₀ k t) Ω} {N' : IntermediateField (K₀ K t) Ω}
+    (hN : ∀ x ∈ N, x ∈ N') [FiniteDimensional (K₀ k t) N] [IsGalois (K₀ k t) N]
+    [FiniteDimensional (K₀ K t) N'] [IsGalois (K₀ K t) N'] :
+    Function.Surjective (res hN) := by
+  rw [← MonoidHom.range_eq_top]
+  set H := (res hN).range
+  have hfix : IntermediateField.fixedField H = ⊥ := by
+    rw [eq_bot_iff]
+    intro x hx
+    rw [IntermediateField.mem_fixedField_iff] at hx
+    -- `x` is fixed by `Gal(N' / K(t))`, so `x ∈ K(t)`
+    have hx' : (⟨x, hN x x.2⟩ : N') ∈ (⊥ : IntermediateField (K₀ K t) N') := by
+      rw [← IsGalois.fixedField_fixingSubgroup (⊥ : IntermediateField (K₀ K t) N'),
+        IntermediateField.fixingSubgroup_bot, IntermediateField.mem_fixedField_iff]
+      intro σ' _
+      have := congrArg Subtype.val (hx (res hN σ') ⟨σ', rfl⟩)
+      rw [coe_res_apply] at this
+      exact Subtype.ext this
+    obtain ⟨c, hc⟩ := IntermediateField.mem_bot.mp hx'
+    have hxK : (x : Ω) ∈ K₀ K t := by
+      rw [← congrArg Subtype.val hc]; exact c.2
+    have halg : IsAlgebraic (K₀ k t) (x : Ω) :=
+      ((IsIntegral.of_finite (K₀ k t) x).map (IsScalarTower.toAlgHom (K₀ k t) N Ω)).isAlgebraic
+    have hxk := mem_K₀_of_isAlgebraic htK hxK halg
+    exact IntermediateField.mem_bot.mpr ⟨⟨x, hxk⟩, Subtype.ext rfl⟩
+  rw [← IntermediateField.fixingSubgroup_fixedField H, hfix, IntermediateField.fixingSubgroup_bot]
+
+set_option maxHeartbeats 2000000 in
+set_option synthInstance.maxHeartbeats 400000 in
+/-- **Lying over under extension of an algebraically closed constant field**: if `k` is
+algebraically closed, every maximal ideal of the coordinate ring of `F` is the trace of a maximal
+ideal of the coordinate ring of `F' = K(t) · F`. -/
+theorem exists_comap_bc_eq [IsAlgClosed k] (htK : Transcendental K t)
+    {F : IntermediateField (K₀ k t) Ω} {F' : IntermediateField (K₀ K t) Ω}
+    [FiniteDimensional (K₀ k t) F] (hF : ∀ x ∈ F, x ∈ F')
+    (hF' : F' ≤ IntermediateField.adjoin (K₀ K t) (F : Set Ω))
+    (w : Ideal (coordRing k t F)) [hw : w.IsMaximal] :
+    ∃ w' : Ideal (coordRing K t F'), w'.IsMaximal ∧ w'.comap (bcMap hF) = w := by
+  classical
+  have htk : Transcendental k t := transcendental_of_bc (K := K) htK
+  haveI : CharZero K := charZero_of_injective_algebraMap (algebraMap k K).injective
+  obtain ⟨N, N', hFN, _, _, _, _, hNN', hN'⟩ := exists_galois_bc htK F
+  have hF'N' : F' ≤ N' := by
+    rw [hN']
+    exact hF'.trans (IntermediateField.adjoin.mono _ _ _ hFN)
+  haveI : Algebra.IsSeparable (K₀ k t) F :=
+    Algebra.IsSeparable.of_algHom (F := K₀ k t) (E := F) (E' := N) (IntermediateField.inclusion hFN)
+  haveI := isDedekindDomain_ring t htk F
+  haveI := isDedekindDomain_ring t htk N
+  haveI := isDedekindDomain_ring t htK N'
+  -- a prime `u` of `N` over `w`
+  obtain ⟨u, hu, huw⟩ : ∃ u : Ideal (coordRing k t N), u.IsMaximal ∧
+      u.comap (ringMap t hFN) = w := by
+    letI := algRing t hFN
+    haveI : Algebra.IsIntegral (coordRing k t F) (coordRing k t N) := ⟨ringMap_isIntegral t _⟩
+    have hker : RingHom.ker (algebraMap (coordRing k t F) (coordRing k t N)) ≤ w := by
+      intro x hx
+      rw [RingHom.mem_ker] at hx
+      rw [show x = 0 from ringMap_injective t hFN (hx.trans (map_zero _).symm)]
+      exact zero_mem _
+    exact Ideal.exists_ideal_over_maximal_of_isIntegral w hker
+  -- `p = u ∩ k[t] = (t - c)`
+  have hbotN : (⊥ : IntermediateField (K₀ k t) Ω) ≤ N := bot_le
+  have hbotN' : (⊥ : IntermediateField (K₀ K t) Ω) ≤ N' := bot_le
+  set p := u.comap (ringMap t hbotN)
+  haveI : p.IsMaximal := by
+    letI := algRing t hbotN
+    haveI : Algebra.IsIntegral (coordRing k t (⊥ : IntermediateField (K₀ k t) Ω))
+      (coordRing k t N) := ⟨ringMap_isIntegral t _⟩
+    exact Ideal.isMaximal_comap_of_isIntegral_of_isMaximal u
+  set ek := coordRingBotEquiv (Ω := Ω) htk
+  set eK := coordRingBotEquiv (Ω := Ω) htK
+  set P : Ideal k[X] := p.comap ek.toRingEquiv.toRingHom
+  haveI hPm : P.IsMaximal := Ideal.comap_isMaximal_of_surjective _ ek.surjective
+  obtain ⟨q, hq⟩ := (IsPrincipalIdealRing.principal P).principal
+  have hPq : P = Ideal.span {q} := hq
+  have hq0 : q ≠ 0 := by
+    rintro rfl
+    have : P = ⊥ := by rw [hPq, Ideal.span_singleton_eq_bot.mpr rfl]
+    exact Ring.ne_bot_of_isMaximal_of_not_isField hPm (Polynomial.not_isField k) this
+  have hqu : ¬ IsUnit q := fun h => hPm.ne_top (by rw [hPq, Ideal.span_singleton_eq_top]; exact h)
+  obtain ⟨c, hc⟩ := IsAlgClosed.exists_root q (fun h => hqu (Polynomial.isUnit_iff_degree_eq_zero.mpr h))
+  have hPc : P = RingHom.ker (Polynomial.evalRingHom c) := by
+    refine hPm.eq_of_le (RingHom.ker_ne_top _) ?_
+    rw [hPq, Ideal.span_le, Set.singleton_subset_iff]
+    exact hc
+  -- the maximal ideal `v' = (t - c)` of `K[t]`
+  let χ : coordRing K t (⊥ : IntermediateField (K₀ K t) Ω) →+* K :=
+    (Polynomial.evalRingHom (algebraMap k K c)).comp eK.symm.toRingEquiv.toRingHom
+  have hχ : Function.Surjective χ := fun a => ⟨eK (Polynomial.C a), by simp [χ]⟩
+  set v' := RingHom.ker χ
+  haveI hv' : v'.IsMaximal := RingHom.ker_isMaximal_of_surjective χ hχ
+  have hv'p : v'.comap (bcMap (bot_mem_bc (k := k) (K := K) (t := t))) = p := by
+    ext x
+    obtain ⟨r, rfl⟩ := ek.surjective x
+    rw [Ideal.mem_comap, RingHom.mem_ker, bcMap_coordRingBotEquiv htk htK]
+    have h1 : χ (eK (r.map (algebraMap k K))) = algebraMap k K (r.eval c) := by
+      change Polynomial.eval (algebraMap k K c) (eK.symm (eK (r.map (algebraMap k K)))) = _
+      rw [AlgEquiv.symm_apply_apply, Polynomial.eval_map, Polynomial.eval₂_at_apply]
+    rw [h1, map_eq_zero_iff _ (algebraMap k K).injective]
+    change _ ↔ r ∈ P
+    rw [hPc, RingHom.mem_ker]
+    rfl
+  -- a prime `u'₁` of `N'` over `v'`
+  obtain ⟨u'₁, hu'₁, hu'₁v⟩ : ∃ u'₁ : Ideal (coordRing K t N'), u'₁.IsMaximal ∧
+      u'₁.comap (ringMap t hbotN') = v' := by
+    letI := algRing t hbotN'
+    haveI : Algebra.IsIntegral (coordRing K t (⊥ : IntermediateField (K₀ K t) Ω))
+      (coordRing K t N') := ⟨ringMap_isIntegral t _⟩
+    have hker : RingHom.ker (algebraMap (coordRing K t (⊥ : IntermediateField (K₀ K t) Ω))
+        (coordRing K t N')) ≤ v' := by
+      intro x hx
+      rw [RingHom.mem_ker] at hx
+      rw [show x = 0 from ringMap_injective t hbotN' (hx.trans (map_zero _).symm)]
+      exact zero_mem _
+    exact Ideal.exists_ideal_over_maximal_of_isIntegral v' hker
+  set u₁ := u'₁.comap (bcMap hNN')
+  haveI : u₁.IsPrime := Ideal.comap_isPrime _ _
+  have hu₁p : u₁.comap (ringMap t hbotN) = p := by
+    rw [← hv'p, ← hu'₁v]
+    ext x
+    exact Iff.rfl
+  -- transitivity of `Gal(N / k(t))` on the primes over `p`
+  obtain ⟨σ, hσ⟩ : ∃ σ : fixSub t N ⊥, σ • u₁ = u := by
+    letI := algRing t hbotN
+    haveI := isGaloisGroup_fixSub t hbotN htk
+    haveI : u.LiesOver p := ⟨rfl⟩
+    haveI : u₁.LiesOver p := ⟨hu₁p.symm⟩
+    exact Ideal.exists_smul_eq_of_isGaloisGroup p u₁ u (fixSub t N ⊥)
+  obtain ⟨σ', hσ'⟩ := res_surjective htK hNN' (σ : N ≃ₐ[K₀ k t] N)
+  let u' : Ideal (coordRing K t N') := σ' • u'₁
+  have hu' : u'.IsMaximal := by
+    change (σ' • u'₁).IsMaximal
+    rw [Ideal.pointwise_smul_eq_comap]
+    exact Ideal.comap_isMaximal_of_surjective _ (MulSemiringAction.toRingAut _ _ σ').symm.surjective
+  have hu'u : u'.comap (bcMap hNN') = u := by
+    rw [← hσ]
+    ext x
+    rw [Ideal.mem_comap, Ideal.mem_pointwise_smul_iff_inv_smul_mem,
+      Subgroup.smul_def, Ideal.mem_pointwise_smul_iff_inv_smul_mem, ← hσ', ← map_inv,
+      ← bcMap_smul]
+    exact Iff.rfl
+  refine ⟨u'.comap (ringMap t hF'N'),
+    Ideal.isMaximal_comap_of_isIntegral_of_isMaximal' _ (ringMap_isIntegral t _) u', ?_⟩
+  rw [← huw, ← hu'u]
+  ext x
+  exact Iff.rfl
 
 end Closure
 
