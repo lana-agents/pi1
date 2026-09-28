@@ -123,4 +123,92 @@ theorem coreStar_iff_sOmega : CoreStar E ↔ SOmega j :=
 
 end Omega
 
+section Transfer
+
+variable {k K Ω : Type u} [Field k] [Field K] [Field Ω] [Algebra k K] [Algebra K Ω] [Algebra k Ω]
+  [IsScalarTower k K Ω] [IsAlgClosed Ω] [CharZero k] {t : Ω} (htK : Transcendental K t)
+  {F₁ F₂ : IntermediateField (K₀ k t) Ω} {F₁' F₂' : IntermediateField (K₀ K t) Ω}
+  [FiniteDimensional (K₀ k t) F₂] (h : F₁ ≤ F₂) (h' : F₁' ≤ F₂')
+  (h₁ : ∀ x ∈ F₁, x ∈ F₁') (h₂ : ∀ x ∈ F₂, x ∈ F₂')
+  (h₁' : F₁' ≤ IntermediateField.adjoin (K₀ K t) (F₁ : Set Ω))
+  (h₂' : F₂' ≤ IntermediateField.adjoin (K₀ K t) (F₂ : Set Ω))
+  {m₁ : Ideal (coordRing k t F₁) → ℕ} {m₂ : Ideal (coordRing k t F₂) → ℕ}
+  {m₁' : Ideal (coordRing K t F₁') → ℕ} {m₂' : Ideal (coordRing K t F₂') → ℕ}
+  (hm₁ : ∀ v' : Ideal (coordRing K t F₁'), v'.IsMaximal → v'.comap (bcMap h₁) = ⊥ → m₁' v' = 1)
+  (hm₁' : ∀ v' : Ideal (coordRing K t F₁'), v'.IsMaximal → v'.comap (bcMap h₁) ≠ ⊥ →
+    m₁' v' = m₁ (v'.comap (bcMap h₁)))
+  (hm₂ : ∀ w' : Ideal (coordRing K t F₂'), w'.IsMaximal → w'.comap (bcMap h₂) = ⊥ → m₂' w' = 1)
+  (hm₂' : ∀ w' : Ideal (coordRing K t F₂'), w'.IsMaximal → w'.comap (bcMap h₂) ≠ ⊥ →
+    m₂' w' = m₂ (w'.comap (bcMap h₂)))
+
+include htK h₁' h₂' hm₁ hm₁' hm₂ hm₂' in
+set_option maxHeartbeats 1000000 in
+/-- **Étaleness is preserved by extension of the constant field.** -/
+theorem etale_bc
+    (C : ∀ w : Ideal (coordRing k t F₂), w.IsMaximal →
+      (letI := algRing t h; w.ramificationIdx (coordRing k t F₁)) * m₂ w =
+        m₁ (w.comap (ringMap t h))) :
+    ∀ w' : Ideal (coordRing K t F₂'), w'.IsMaximal →
+      (letI := algRing t h'; w'.ramificationIdx (coordRing K t F₁')) * m₂' w' =
+        m₁' (w'.comap (ringMap t h')) := by
+  intro w' hw'
+  have htk : Transcendental k t := transcendental_of_bc (K := K) htK
+  obtain ⟨hbot, hne⟩ := ramificationIdx_bc htK h h' h₁ h₂ h₁' h₂' w'
+  set w := w'.comap (bcMap h₂)
+  have hv : (w'.comap (ringMap t h')).comap (bcMap h₁) = w.comap (ringMap t h) := by
+    ext x; exact Iff.rfl
+  haveI : (w'.comap (ringMap t h')).IsMaximal := by
+    letI := algRing t h'
+    haveI : Algebra.IsIntegral (coordRing K t F₁') (coordRing K t F₂') :=
+      ⟨ringMap_isIntegral t _⟩
+    exact Ideal.isMaximal_comap_of_isIntegral_of_isMaximal w'
+  by_cases hw : w = ⊥
+  · rw [hbot hw, one_mul, hm₂ w' hw' hw, hm₁ _ inferInstance (by
+      rw [hv, hw]; exact Ideal.comap_bot_of_injective _ (ringMap_injective t h))]
+  · obtain ⟨hwm, he⟩ := hne hw
+    have hv0 : w.comap (ringMap t h) ≠ ⊥ := by
+      letI := algRing t h
+      haveI : Algebra.IsIntegral (coordRing k t F₁) (coordRing k t F₂) :=
+        ⟨ringMap_isIntegral t _⟩
+      obtain ⟨x, hx, hx0⟩ := Submodule.exists_mem_ne_zero_of_ne_bot hw
+      exact Ideal.comap_ne_bot_of_integral_mem hx0 hx (Algebra.IsIntegral.isIntegral x)
+    rw [he, hm₂' w' hw' hw, hm₁' _ inferInstance (by rw [hv]; exact hv0), hv]
+    exact C w hwm
+
+include htK h₁' h₂' hm₁' hm₂' in
+set_option maxHeartbeats 1000000 in
+/-- **Étaleness descends along an extension of algebraically closed constant fields.** -/
+theorem etale_of_bc [IsAlgClosed k]
+    (C : ∀ w' : Ideal (coordRing K t F₂'), w'.IsMaximal →
+      (letI := algRing t h'; w'.ramificationIdx (coordRing K t F₁')) * m₂' w' =
+        m₁' (w'.comap (ringMap t h'))) :
+    ∀ w : Ideal (coordRing k t F₂), w.IsMaximal →
+      (letI := algRing t h; w.ramificationIdx (coordRing k t F₁)) * m₂ w =
+        m₁ (w.comap (ringMap t h)) := by
+  intro w hw
+  have htk : Transcendental k t := transcendental_of_bc (K := K) htK
+  obtain ⟨w', hw', hw'w⟩ := exists_comap_bc_eq htK h₂ h₂' w
+  obtain ⟨-, hne⟩ := ramificationIdx_bc htK h h' h₁ h₂ h₁' h₂' w'
+  have hw0 : w ≠ ⊥ := Ring.ne_bot_of_isMaximal_of_not_isField hw (not_isField_ring t htk F₂)
+  have hw'0 : w'.comap (bcMap h₂) ≠ ⊥ := by rw [hw'w]; exact hw0
+  obtain ⟨-, he⟩ := hne hw'0
+  have hv : (w'.comap (ringMap t h')).comap (bcMap h₁) = w.comap (ringMap t h) := by
+    rw [← hw'w]; ext x; exact Iff.rfl
+  haveI : (w'.comap (ringMap t h')).IsMaximal := by
+    letI := algRing t h'
+    haveI : Algebra.IsIntegral (coordRing K t F₁') (coordRing K t F₂') :=
+      ⟨ringMap_isIntegral t _⟩
+    exact Ideal.isMaximal_comap_of_isIntegral_of_isMaximal w'
+  have hv0 : w.comap (ringMap t h) ≠ ⊥ := by
+    letI := algRing t h
+    haveI : Algebra.IsIntegral (coordRing k t F₁) (coordRing k t F₂) :=
+      ⟨ringMap_isIntegral t _⟩
+    obtain ⟨x, hx, hx0⟩ := Submodule.exists_mem_ne_zero_of_ne_bot hw0
+    exact Ideal.comap_ne_bot_of_integral_mem hx0 hx (Algebra.IsIntegral.isIntegral x)
+  have := C w' hw'
+  rw [he, hm₂' w' hw' hw'0, hm₁' _ inferInstance (by rw [hv]; exact hv0), hv, hw'w] at this
+  exact this
+
+end Transfer
+
 end AffOrbicurve
