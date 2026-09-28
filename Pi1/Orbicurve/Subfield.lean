@@ -164,4 +164,25 @@ lemma ringMap_isIntegral : (ringMap t h).toRingHom.IsIntegral := by
 
 end Map
 
+section Hom
+
+variable {t} (ht : Transcendental k t) {L L' : IntermediateField (K₀ k t) Ω}
+  [FiniteDimensional (K₀ k t) L] [Algebra.IsSeparable (K₀ k t) L]
+  [FiniteDimensional (K₀ k t) L'] [Algebra.IsSeparable (K₀ k t) L'] (h : L ≤ L')
+
+/-- **The finite étale morphism** `ofSubfield L' m' → ofSubfield L m` induced by `L ⊆ L'`, when
+`e(w | v) · m'(w) = m(v)` at every maximal ideal `w`. -/
+noncomputable def homOfLE {m : Ideal (coordRing k t L) → ℕ} {m_pos m_fin}
+    {m' : Ideal (coordRing k t L') → ℕ} {m'_pos m'_fin}
+    (hm : ∀ w : Ideal (coordRing k t L'), w.IsMaximal →
+      (letI := (ringMap t h).toRingHom.toAlgebra; w.ramificationIdx (coordRing k t L)) * m' w =
+        m (w.comap (ringMap t h))) :
+    Hom (ofSubfield t ht L' m' m'_pos m'_fin) (ofSubfield t ht L m m_pos m_fin) where
+  f := ringMap t h
+  injective := ringMap_injective t h
+  isIntegral := ringMap_isIntegral t h
+  etale := hm
+
+end Hom
+
 end AffOrbicurve
