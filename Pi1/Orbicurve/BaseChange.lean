@@ -2,6 +2,7 @@ module
 
 public import Pi1.Orbicurve.CoreCriterion
 public import Pi1.Orbicurve.ValuationInertia
+public import Mathlib.LinearAlgebra.Lagrange
 
 /-!
 # Ramification of subfield orbicurves under extension of the constant field
@@ -579,6 +580,141 @@ lemma card_inertia_inf_fixSub (hN' : N' ≤ IntermediateField.adjoin (K₀ K t) 
   rw [hmap]
 
 end Inertia
+
+section AlgClosed
+
+omit [Algebra k Ω] [IsScalarTower k K Ω] [Algebra K Ω] in
+/-- An element of `K` integral over the algebraically closed subfield `k` lies in `k`. -/
+lemma mem_range_of_isIntegral [IsAlgClosed k] {y : K} (hy : IsIntegral k y) :
+    y ∈ (algebraMap k K).range := by
+  refine ⟨-(minpoly k y).coeff 0, ?_⟩
+  have hq : (minpoly k y).leadingCoeff = 1 := minpoly.monic hy
+  have h : (minpoly k y).degree = 1 :=
+    IsAlgClosed.degree_eq_one_of_irreducible k (minpoly.irreducible hy)
+  have : aeval y (minpoly k y) = 0 := minpoly.aeval k y
+  rw [eq_X_add_C_of_degree_eq_one h, hq, C_1, one_mul, aeval_add, aeval_X, aeval_C,
+    add_eq_zero_iff_eq_neg] at this
+  exact (map_neg (algebraMap k K) ((minpoly k y).coeff 0)).symm ▸ this.symm
+
+omit [Algebra k Ω] [IsScalarTower k K Ω] [Algebra K Ω] in
+/-- **Interpolation**: a polynomial over `K` taking values in the infinite subfield `k` at all
+points of `k` has coefficients in `k`. -/
+lemma exists_map_eq_of_eval_mem [Infinite k] (P : K[X])
+    (hP : ∀ c : k, P.eval (algebraMap k K c) ∈ (algebraMap k K).range) :
+    ∃ Q : k[X], Q.map (algebraMap k K) = P := by
+  classical
+  obtain ⟨s, hs⟩ := Infinite.exists_subset_card_eq k (P.natDegree + 1)
+  let v : k → k := fun c => (hP c).choose
+  have hv : ∀ c, algebraMap k K (v c) = P.eval (algebraMap k K c) := fun c => (hP c).choose_spec
+  let Q := Lagrange.interpolate s id v
+  refine ⟨Q, ?_⟩
+  let s' : Finset K := s.map ⟨algebraMap k K, (algebraMap k K).injective⟩
+  have hs' : s'.card = P.natDegree + 1 := by rw [Finset.card_map, hs]
+  apply Polynomial.eq_of_degree_sub_lt_of_eval_finset_eq s'
+  · rw [hs']
+    refine lt_of_le_of_lt (Polynomial.degree_sub_le _ _) (max_lt ?_ ?_)
+    · rw [Polynomial.degree_map]
+      have := Lagrange.degree_interpolate_lt (s := s) (v := id) v (Set.injOn_id _)
+      rw [hs] at this
+      exact_mod_cast this
+    · exact lt_of_le_of_lt Polynomial.degree_le_natDegree (by exact_mod_cast Nat.lt_succ_self _)
+  · intro x hx
+    obtain ⟨c, hc, rfl⟩ := Finset.mem_map.mp hx
+    change eval (algebraMap k K c) (Q.map (algebraMap k K)) = eval (algebraMap k K c) P
+    rw [Polynomial.eval_map_algebraMap, Polynomial.aeval_algebraMap_apply, ← hv]
+    congr 1
+    exact Lagrange.eval_interpolate_at_node (v := id) v (Set.injOn_id _) hc
+
+variable {t}
+
+lemma coe_algEquivOfTranscendental {F : Type u} [Field F] [Algebra F Ω] (ht : Transcendental F t)
+    (P : F[X]) : ((Polynomial.algEquivOfTranscendental F t ht P : A₀ F t) : Ω) = aeval t P := by
+  change ((aeval (⟨t, Algebra.self_mem_adjoin_singleton F t⟩ : A₀ F t) P : A₀ F t) : Ω) = _
+  rw [← Subalgebra.aeval_coe]
+
+variable [IsAlgClosed k]
+
+set_option maxHeartbeats 1000000 in
+/-- **`K(t) ∩ \overline{k(t)} = k(t)`** for `k` algebraically closed. -/
+theorem mem_K₀_of_isAlgebraic (htK : Transcendental K t) {x : Ω} (hx : x ∈ K₀ K t)
+    (halg : IsAlgebraic (K₀ k t) x) : x ∈ K₀ k t := by
+  classical
+  have htk : Transcendental k t := transcendental_of_bc (K := K) htK
+  haveI : Infinite k := IsAlgClosed.instInfinite
+  haveI := isPrincipalIdealRing_A₀ htK
+  have halg' : IsAlgebraic (A₀ k t) x :=
+    (IsFractionRing.isAlgebraic_iff (A₀ k t) (K₀ k t) Ω).mpr halg
+  obtain ⟨y, hy0, hyint⟩ := halg'.exists_integral_multiple
+  have hyK₀ : (y : Ω) ∈ K₀ k t :=
+    (Algebra.adjoin_le_iff.mpr (by
+      intro z hz
+      rw [Set.mem_singleton_iff] at hz
+      rw [hz]; exact IntermediateField.mem_adjoin_simple_self k t) :
+      A₀ k t ≤ (K₀ k t).toSubalgebra) y.2
+  set g : Ω := (y : Ω) * x with hg
+  have hgint : IsIntegral (A₀ k t) g := by
+    rw [hg]; exact hyint
+  have hgK : g ∈ K₀ K t := mul_mem (K₀_le_bc t hyK₀) hx
+  set eK := Polynomial.algEquivOfTranscendental K t htK
+  set ek := Polynomial.algEquivOfTranscendental k t htk
+  -- `g = P(t)` with `P ∈ K[X]`
+  obtain ⟨P, hP⟩ : ∃ P : K[X], aeval t P = g := by
+    have h1 : IsIntegral (A₀ K t) (⟨g, hgK⟩ : K₀ K t) := by
+      haveI : IsScalarTower (A₀ K t) (K₀ K t) Ω := IsScalarTower.of_algebraMap_eq fun _ => rfl
+      exact (isIntegral_algebraMap_iff (algebraMap (K₀ K t) Ω).injective).mp
+        (isIntegral_A₀_of t hgint)
+    obtain ⟨a, ha⟩ := (IsIntegrallyClosed.isIntegral_iff (R := A₀ K t) (K := K₀ K t)).mp h1
+    refine ⟨eK.symm a, ?_⟩
+    rw [← coe_algEquivOfTranscendental htK, AlgEquiv.apply_symm_apply]
+    exact congrArg Subtype.val ha
+  -- the integral equation, over `K[X]`
+  obtain ⟨f, hfm, hf⟩ := hgint
+  let ρ : A₀ k t →+* K[X] :=
+    (Polynomial.mapRingHom (algebraMap k K)).comp ek.symm.toRingEquiv.toRingHom
+  have hρ : (aeval t : K[X] →ₐ[K] Ω).toRingHom.comp ρ = algebraMap (A₀ k t) Ω := by
+    ext a
+    obtain ⟨q, rfl⟩ := ek.surjective a
+    change aeval t ((ek.symm (ek q)).map (algebraMap k K)) = ((ek q : A₀ k t) : Ω)
+    rw [AlgEquiv.symm_apply_apply, Polynomial.aeval_map_algebraMap, coe_algEquivOfTranscendental]
+  have hPf : Polynomial.eval₂ ρ P f = 0 := by
+    apply (transcendental_iff_injective.mp htK)
+    rw [map_zero]
+    have := Polynomial.hom_eval₂ f ρ (aeval t : K[X] →ₐ[K] Ω).toRingHom P
+    change (aeval t : K[X] →ₐ[K] Ω).toRingHom (Polynomial.eval₂ ρ P f) = 0
+    rw [this, hρ]
+    change Polynomial.eval₂ (algebraMap (A₀ k t) Ω) (aeval t P) f = 0
+    rw [hP]; exact hf
+  have hPc : ∀ c : k, P.eval (algebraMap k K c) ∈ (algebraMap k K).range := by
+    intro c
+    apply mem_range_of_isIntegral
+    let φ : A₀ k t →+* k := (Polynomial.evalRingHom c).comp ek.symm.toRingEquiv.toRingHom
+    refine ⟨f.map φ, hfm.map φ, ?_⟩
+    rw [Polynomial.eval₂_map]
+    have hc : (algebraMap k K).comp φ =
+        (Polynomial.evalRingHom (algebraMap k K c)).comp ρ := by
+      ext a
+      obtain ⟨q, rfl⟩ := ek.surjective a
+      change algebraMap k K ((ek.symm (ek q)).eval c) =
+        ((ek.symm (ek q)).map (algebraMap k K)).eval (algebraMap k K c)
+      rw [AlgEquiv.symm_apply_apply, Polynomial.eval_map, Polynomial.eval₂_at_apply]
+    rw [hc]
+    change Polynomial.eval₂ _ ((Polynomial.evalRingHom (algebraMap k K c)) P) f = 0
+    rw [← Polynomial.hom_eval₂, hPf, map_zero]
+  obtain ⟨Q, rfl⟩ := exists_map_eq_of_eval_mem P hPc
+  have hgk : g ∈ K₀ k t := by
+    rw [← hP, Polynomial.aeval_map_algebraMap, ← coe_algEquivOfTranscendental htk]
+    exact (Algebra.adjoin_le_iff.mpr (by
+      intro z hz
+      rw [Set.mem_singleton_iff] at hz
+      rw [hz]; exact IntermediateField.mem_adjoin_simple_self k t) :
+      A₀ k t ≤ (K₀ k t).toSubalgebra) (ek Q).2
+  have hy : (y : Ω) ≠ 0 := fun h => hy0 (Subtype.ext h)
+  have hxg : x = g / (y : Ω) := by
+    rw [hg]; field_simp
+  rw [hxg]
+  exact div_mem hgk hyK₀
+
+end AlgClosed
 
 section Closure
 
