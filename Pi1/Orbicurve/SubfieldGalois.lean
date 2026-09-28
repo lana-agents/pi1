@@ -68,6 +68,20 @@ lemma fixSub_eq_fixingSubgroup :
 noncomputable abbrev algRing : Algebra (coordRing k t F) (coordRing k t N) :=
   (ringMap t hFN).toRingHom.toAlgebra
 
+lemma module_finite_ringMap [FiniteDimensional (K₀ k t) N] [Algebra.IsSeparable (K₀ k t) N]
+    (ht : Transcendental k t) (hFN : F ≤ N) :
+    @Module.Finite (coordRing k t F) (coordRing k t N) _ _ (algRing t hFN).toModule := by
+  letI iR := algRing t hFN
+  letI : SMul (coordRing k t F) (coordRing k t N) := iR.toSMul
+  letI : Module (coordRing k t F) (coordRing k t N) := iR.toModule
+  haveI := finite_ring t ht N
+  haveI : IsScalarTower (A₀ k t) (coordRing k t F) (coordRing k t N) :=
+    ⟨fun a b c => by
+      apply Subtype.ext; apply Subtype.ext
+      change ((a : Ω) * (b : Ω)) * (c : Ω) = (a : Ω) * ((b : Ω) * (c : Ω))
+      ring⟩
+  exact Module.Finite.of_restrictScalars_finite (A₀ k t) _ _
+
 /-- The inclusion `F → N` as an algebra structure. -/
 noncomputable abbrev algFN : Algebra F N := (IntermediateField.inclusion hFN).toAlgebra
 
@@ -118,20 +132,6 @@ theorem isGaloisGroup_fixSub (ht : Transcendental k t) :
 section Ramification
 
 variable [CharZero k] (ht : Transcendental k t)
-
-include ht in
-lemma module_finite_ringMap (hFN : F ≤ N) :
-    @Module.Finite (coordRing k t F) (coordRing k t N) _ _ (algRing t hFN).toModule := by
-  letI iR := algRing t hFN
-  letI : SMul (coordRing k t F) (coordRing k t N) := iR.toSMul
-  letI : Module (coordRing k t F) (coordRing k t N) := iR.toModule
-  haveI := finite_ring t ht N
-  haveI : IsScalarTower (A₀ k t) (coordRing k t F) (coordRing k t N) :=
-    ⟨fun a b c => by
-      apply Subtype.ext; apply Subtype.ext
-      change ((a : Ω) * (b : Ω)) * (c : Ω) = (a : Ω) * ((b : Ω) * (c : Ω))
-      ring⟩
-  exact Module.Finite.of_restrictScalars_finite (A₀ k t) _ _
 
 include ht in
 set_option maxHeartbeats 1000000 in
