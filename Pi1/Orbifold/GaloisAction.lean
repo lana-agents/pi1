@@ -156,18 +156,20 @@ theorem continuous_toEtalePi1 [IsGalois (K₀ k t) Ω] : Continuous D.toEtalePi1
     rw [fibreSmul_of_mem D hσL]
     exact hσT p hp i
 
+/-- The values of fibre elements are integral over `k[t]`. -/
+lemma isIntegral_fibre (X : EquivEtale D.R D.A) (f : X.B →ₐ[D.R] Ω) (b : X.B) :
+    IsIntegral (A₀ k t) (f b) := by
+  letI := X.finite
+  have hb : IsIntegral D.R (f b) := ((Algebra.IsIntegral.of_finite D.R X.B).isIntegral b).map f
+  exact isIntegral_trans (A := D.R) _ hb
+
 /-- **Inertia acts trivially on fibres**: an element of `S` fixes every fibre element. -/
 theorem fibreSmul_eq_self_of_mem_S {σ : D.H} (hσ : (σ : Ω ≃ₐ[K₀ k t] Ω) ∈ D.S)
     (X : EquivEtale D.R D.A) (f : X.B →ₐ[D.R] Ω) : D.fibreSmul σ X f = f := by
   obtain ⟨hσL, W, hk, ht, hin⟩ := hσ
   letI := X.etale
   letI := X.finite
-  have hW : ∀ b, f b ∈ W := by
-    intro b
-    refine mem_of_isIntegral hk ht ?_
-    have hb : IsIntegral D.R (f b) :=
-      ((Algebra.IsIntegral.of_finite D.R X.B).isIntegral b).map f
-    exact isIntegral_trans (A := D.R) _ hb
+  have hW : ∀ b, f b ∈ W := fun b => mem_of_isIntegral hk ht (D.isIntegral_fibre X f b)
   have hsub : ∀ b, (σ : Ω ≃ₐ[K₀ k t] Ω) (f b) - f b ∈ W := by
     intro b
     exact (W.valuation_le_one_iff _).1 ((hin _ (hW b)).le)

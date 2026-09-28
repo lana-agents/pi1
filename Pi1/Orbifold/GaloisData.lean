@@ -99,6 +99,19 @@ lemma algebraMap_algOfLE {F' : IntermediateField (K₀ k t) Ω} (h : F ≤ F') (
     algebraMap (CoordRing k t F') Ω (@algebraMap _ _ _ _ (algOfLE h) x) =
       algebraMap (CoordRing k t F) Ω x := rfl
 
+/-- An automorphism fixing the coordinate ring of `F` (finite over `k(t)`) fixes `F`. -/
+lemma mem_fixingSubgroup_of_forall [FiniteDimensional (K₀ k t) F] (σ : Ω ≃ₐ[K₀ k t] Ω)
+    (h : ∀ x : CoordRing k t F, σ (algebraMap _ Ω x) = algebraMap _ Ω x) :
+    σ ∈ F.fixingSubgroup := by
+  rw [IntermediateField.mem_fixingSubgroup_iff]
+  intro y hy
+  haveI := isFractionRing_coordRing t F
+  obtain ⟨a, b, -, hab⟩ := IsFractionRing.div_surjective (A := coordRing k t F) (⟨y, hy⟩ : F)
+  have hy' := congrArg (IntermediateField.val F) hab
+  rw [map_div₀] at hy'
+  change algebraMap (CoordRing k t F) Ω a / algebraMap (CoordRing k t F) Ω b = y at hy'
+  rw [← hy', map_div₀, h a, h b]
+
 end CoordRing
 
 lemma isIntegral_aut (σ : Ω ≃ₐ[K₀ k t] Ω) {x : Ω} (hx : IsIntegral (A₀ k t) x) :
@@ -159,9 +172,14 @@ structure GaloisData where
   H : Subgroup (Ω ≃ₐ[K₀ k t] Ω)
   /-- The group `H_L` (the automorphisms of `Ω` over the function field `L`). -/
   HL : Subgroup (Ω ≃ₐ[K₀ k t] Ω)
+  /-- `H_L ≤ H`. -/
   le : HL ≤ H
+  /-- `H_L` is open. -/
   isOpen_HL : IsOpen (HL : Set (Ω ≃ₐ[K₀ k t] Ω))
+  /-- `H` normalizes `H_L`. -/
   conj_mem : ∀ h ∈ H, ∀ n ∈ HL, h * n * h⁻¹ ∈ HL
+  /-- `t` is transcendental over `k`. -/
+  transcendental : Transcendental k t
 
 namespace GaloisData
 
@@ -221,6 +239,34 @@ def S : Set (Ω ≃ₐ[K₀ k t] Ω) :=
     σ ∈ GaloisPi1.inertia W}
 
 lemma S_subset_HL : D.S ⊆ D.HL := fun _ h => h.1
+
+/-- A section of `H → A = H ⧸ H_L` mapping `1` to `1`. -/
+noncomputable def sec (a : D.A) : D.H := Quotient.out a * (Quotient.out (1 : D.A))⁻¹
+
+@[simp] lemma mk_sec (a : D.A) : (D.sec a : D.A) = a := by
+  simp [sec]
+
+@[simp] lemma sec_one : D.sec 1 = 1 := mul_inv_cancel _
+
+lemma mk_sec_mul_sec_inv (a b : D.A) : ((D.sec b * (D.sec (a⁻¹ * b))⁻¹ : D.H) : D.A) = a := by
+  rw [QuotientGroup.mk_mul, QuotientGroup.mk_inv, mk_sec, mk_sec]
+  group
+
+section Galois
+
+variable [IsGalois (K₀ k t) Ω]
+
+lemma fixingSubgroup_L : D.L.fixingSubgroup = D.HL :=
+  InfiniteGalois.fixingSubgroup_fixedField ⟨D.HL, D.isClosed_HL⟩
+
+instance finiteDimensional_L : FiniteDimensional (K₀ k t) D.L :=
+  (InfiniteGalois.isOpen_iff_finite _).1 (by rw [fixingSubgroup_L]; exact D.isOpen_HL)
+
+instance finite_A : Finite D.A :=
+  Subgroup.quotient_finite_of_isOpen' D.H (D.HL.subgroupOf D.H) D.isOpen_H
+    (D.isOpen_HL.preimage continuous_subtype_val)
+
+end Galois
 
 end GaloisData
 
