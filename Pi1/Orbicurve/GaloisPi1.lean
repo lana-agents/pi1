@@ -239,4 +239,14 @@ theorem isOpenEmbedding_pi1Map {H' : Subgroup (Ω ≃ₐ[P] Ω)}
     rw [this]
     exact (hV.inter hHo).preimage continuous_subtype_val
 
+/-- **Open embedding criterion** (variant): if `H` is open, `S = S' ⊆ H`, and `S` is stable under
+conjugation by `H'`, the induced map `H ⧸ ⟨⟨S⟩⟩ → H' ⧸ ⟨⟨S'⟩⟩` is an open embedding. -/
+theorem isOpenEmbedding_pi1Map' {H' : Subgroup (Ω ≃ₐ[P] Ω)} {S' : Set (Ω ≃ₐ[P] Ω)}
+    (hHc : IsClosed (H : Set (Ω ≃ₐ[P] Ω))) (hH'c : IsClosed (H' : Set (Ω ≃ₐ[P] Ω)))
+    (hH : H ≤ H') (hS : S ⊆ S') (hS' : S' ⊆ S) (hHo : IsOpen (H : Set (Ω ≃ₐ[P] Ω)))
+    (hconj : ∀ h ∈ H', ∀ s ∈ S, h * s * h⁻¹ ∈ S) :
+    Topology.IsOpenEmbedding (pi1Map hHc hH'c hH hS) := by
+  obtain rfl : S = S' := subset_antisymm hS hS'
+  exact isOpenEmbedding_pi1Map hHc hH'c hH hHo hconj
+
 end GaloisPi1
