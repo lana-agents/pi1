@@ -24,6 +24,7 @@ so `e(w | v) = 1` if and only if the inertia group `I_u(N / F)` fixes `L`
 universe u
 
 open Ideal IntermediateField IntermediateField.algebraAdjoinAdjoin Polynomial
+open scoped Pointwise
 
 namespace AffOrbicurve
 
@@ -219,6 +220,130 @@ theorem ramificationIdx_eq_one_iff {L : IntermediateField (K₀ k t) Ω} (hFL : 
     have key : ∀ a b : ℕ, 0 < b → b = a * b → a = 1 := fun a b hb h =>
       Nat.eq_of_mul_eq_mul_right hb (by rw [one_mul]; exact h.symm)
     exact key _ _ hpos htower
+
+include ht in
+/-- `e(u ∩ L | u ∩ F) · |I_u(N / L)| = |I_u(N / F)|`. -/
+theorem ramificationIdx_mul_card {L : IntermediateField (K₀ k t) Ω} (hFL : F ≤ L) (hLN : L ≤ N)
+    (u : Ideal (coordRing k t N)) [hu : u.IsMaximal] :
+    (letI := algRing t hFL; (u.comap (ringMap t hLN)).ramificationIdx (coordRing k t F)) *
+      Nat.card ((u.inertia (N ≃ₐ[K₀ k t] N)) ⊓ fixSub t N L : Subgroup _) =
+      Nat.card ((u.inertia (N ≃ₐ[K₀ k t] N)) ⊓ fixSub t N F : Subgroup _) := by
+  have hFN := hFL.trans hLN
+  have hcomp : (ringMap t hLN).toRingHom.comp (ringMap t hFL).toRingHom =
+      (ringMap t hFN).toRingHom := RingHom.ext fun _ => rfl
+  haveI : FiniteDimensional (K₀ k t) L :=
+    FiniteDimensional.of_injective (IntermediateField.inclusion hLN).toLinearMap
+      (IntermediateField.inclusion hLN).injective
+  haveI : Algebra.IsSeparable (K₀ k t) L :=
+    Algebra.IsSeparable.of_algHom (F := K₀ k t) (E := L) (E' := N) (IntermediateField.inclusion hLN)
+  haveI := isDedekindDomain_ring t ht L
+  have htower := AffOrbicurve.ramificationIdx_comp (ringMap t hFL).toRingHom
+    (ringMap t hLN).toRingHom (ringMap_injective t hLN) u
+  rw [hcomp] at htower
+  rw [← ramificationIdx_eq_card_inertia t ht hFN u, ← ramificationIdx_eq_card_inertia t ht hLN u]
+  exact htower.symm
+
+lemma card_inertia_inf_conj (σ : N ≃ₐ[K₀ k t] N) (H : Subgroup (N ≃ₐ[K₀ k t] N))
+    (hH : ∀ τ ∈ H, σ * τ * σ⁻¹ ∈ H) (hH' : ∀ τ ∈ H, σ⁻¹ * τ * σ ∈ H)
+    (u : Ideal (coordRing k t N)) :
+    Nat.card ((u.inertia (N ≃ₐ[K₀ k t] N)) ⊓ H : Subgroup _) =
+      Nat.card (((σ • u).inertia (N ≃ₐ[K₀ k t] N)) ⊓ H : Subgroup _) := by
+  let c := (MulAut.conj σ).toMonoidHom
+  have hinj : Function.Injective c := (MulAut.conj σ).injective
+  rw [← Subgroup.card_map_of_injective hinj]
+  congr 2
+  ext τ
+  simp only [Subgroup.mem_map, Subgroup.mem_inf, MulEquiv.coe_toMonoidHom, MulAut.conj_apply, c]
+  constructor
+  · rintro ⟨ρ, ⟨hρ, hρH⟩, rfl⟩
+    refine ⟨?_, hH ρ hρH⟩
+    simp only [Ideal.inertia, AddSubgroup.mem_inertia, Submodule.mem_toAddSubgroup] at hρ ⊢
+    intro x
+    have := hρ (σ⁻¹ • x)
+    have e : (σ * ρ * σ⁻¹) • x - x = σ • (ρ • (σ⁻¹ • x) - σ⁻¹ • x) := by
+      rw [smul_sub, mul_smul, mul_smul, smul_inv_smul]
+    rw [e]
+    exact Ideal.smul_mem_pointwise_smul σ _ _ this
+  · rintro ⟨hτ, hτH⟩
+    refine ⟨σ⁻¹ * τ * σ, ⟨?_, hH' τ hτH⟩, by group⟩
+    simp only [Ideal.inertia, AddSubgroup.mem_inertia, Submodule.mem_toAddSubgroup] at hτ ⊢
+    intro x
+    have := hτ (σ • x)
+    rw [Ideal.mem_pointwise_smul_iff_inv_smul_mem] at this
+    have e : (σ⁻¹ * τ * σ) • x - x = σ⁻¹ • (τ • (σ • x) - σ • x) := by
+      simp only [smul_sub, mul_smul, inv_smul_smul]
+    rw [e]
+    exact this
+
+include ht in
+set_option maxHeartbeats 1000000 in
+set_option synthInstance.maxHeartbeats 400000 in
+/-- **Galois invariance of ramification indices**: if `Gal(N / L)` is normal in `Gal(N / F)`
+(i.e. `L / F` is Galois), all primes of `coordRing k t L` over a given prime of
+`coordRing k t F` have the same ramification index. -/
+theorem ramificationIdx_eq_of_normal {L : IntermediateField (K₀ k t) Ω} (hFL : F ≤ L)
+    (hLN : L ≤ N) (hnorm : ∀ σ ∈ fixSub t N F, ∀ τ ∈ fixSub t N L, σ * τ * σ⁻¹ ∈ fixSub t N L)
+    (w w' : Ideal (coordRing k t L)) [hw : w.IsMaximal] [hw' : w'.IsMaximal]
+    (h : w.comap (ringMap t hFL) = w'.comap (ringMap t hFL)) :
+    (letI := algRing t hFL; w.ramificationIdx (coordRing k t F)) =
+      (letI := algRing t hFL; w'.ramificationIdx (coordRing k t F)) := by
+  have hFN := hFL.trans hLN
+  haveI : FiniteDimensional (K₀ k t) L :=
+    FiniteDimensional.of_injective (IntermediateField.inclusion hLN).toLinearMap
+      (IntermediateField.inclusion hLN).injective
+  haveI : Algebra.IsSeparable (K₀ k t) L :=
+    Algebra.IsSeparable.of_algHom (F := K₀ k t) (E := L) (E' := N) (IntermediateField.inclusion hLN)
+  -- primes of `coordRing N` over `w`, `w'`
+  obtain ⟨u, hu, hul⟩ : ∃ u : Ideal (coordRing k t N), u.IsMaximal ∧
+      u.comap (ringMap t hLN) = w := by
+    letI := algRing t hLN
+    haveI : Algebra.IsIntegral (coordRing k t L) (coordRing k t N) := ⟨ringMap_isIntegral t hLN⟩
+    haveI : FaithfulSMul (coordRing k t L) (coordRing k t N) := by
+      rw [faithfulSMul_iff_algebraMap_injective]; exact ringMap_injective t hLN
+    obtain ⟨u, hu, hul⟩ := Ideal.exists_maximal_ideal_liesOver_of_isIntegral
+      (S := coordRing k t N) w
+    exact ⟨u, hu, hul.over.symm⟩
+  obtain ⟨u', hu', hul'⟩ : ∃ u : Ideal (coordRing k t N), u.IsMaximal ∧
+      u.comap (ringMap t hLN) = w' := by
+    letI := algRing t hLN
+    haveI : Algebra.IsIntegral (coordRing k t L) (coordRing k t N) := ⟨ringMap_isIntegral t hLN⟩
+    haveI : FaithfulSMul (coordRing k t L) (coordRing k t N) := by
+      rw [faithfulSMul_iff_algebraMap_injective]; exact ringMap_injective t hLN
+    obtain ⟨u, hu, hul⟩ := Ideal.exists_maximal_ideal_liesOver_of_isIntegral
+      (S := coordRing k t N) w'
+    exact ⟨u, hu, hul.over.symm⟩
+  -- a Galois conjugation `σ • u = u'`
+  obtain ⟨σ, hσ⟩ : ∃ σ : fixSub t N F, (σ : N ≃ₐ[K₀ k t] N) • u = u' := by
+    letI iR := algRing t hFN
+    haveI := isGaloisGroup_fixSub t hFN ht
+    let p := u.comap (ringMap t hFN)
+    haveI : p.IsPrime := Ideal.comap_isPrime _ _
+    haveI : u.LiesOver p := ⟨rfl⟩
+    haveI : u'.LiesOver p := ⟨by
+      show u.comap (ringMap t hFN) = u'.comap (ringMap t hFN)
+      have e1 : u.comap (ringMap t hFN) = (u.comap (ringMap t hLN)).comap (ringMap t hFL) := rfl
+      have e2 : u'.comap (ringMap t hFN) = (u'.comap (ringMap t hLN)).comap (ringMap t hFL) := rfl
+      rw [e1, e2, hul, hul', h]⟩
+    obtain ⟨σ, hσ⟩ := Ideal.exists_smul_eq_of_isGaloisGroup p u u' (fixSub t N F)
+    exact ⟨σ, hσ⟩
+  have h1 := ramificationIdx_mul_card t ht hFL hLN u
+  have h2 := ramificationIdx_mul_card t ht hFL hLN u'
+  rw [hul] at h1
+  rw [hul'] at h2
+  have hcF := card_inertia_inf_conj t (σ : N ≃ₐ[K₀ k t] N) (fixSub t N F)
+    (fun τ hτ => (fixSub t N F).mul_mem ((fixSub t N F).mul_mem σ.2 hτ) ((fixSub t N F).inv_mem σ.2))
+    (fun τ hτ => (fixSub t N F).mul_mem ((fixSub t N F).mul_mem ((fixSub t N F).inv_mem σ.2) hτ)
+      σ.2) u
+  have hcL := card_inertia_inf_conj t (σ : N ≃ₐ[K₀ k t] N) (fixSub t N L)
+    (fun τ hτ => hnorm σ σ.2 τ hτ)
+    (fun τ hτ => by
+      have := hnorm σ⁻¹ ((fixSub t N F).inv_mem σ.2) τ hτ
+      simpa using this) u
+  rw [hσ] at hcF hcL
+  rw [← hcF, ← hcL] at h2
+  have hpos : 0 < Nat.card ((u.inertia (N ≃ₐ[K₀ k t] N)) ⊓ fixSub t N L : Subgroup _) :=
+    Nat.card_pos
+  exact Nat.eq_of_mul_eq_mul_right hpos (h1.trans h2.symm)
 
 end Ramification
 
