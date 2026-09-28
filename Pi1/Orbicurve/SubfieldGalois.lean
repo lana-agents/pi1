@@ -331,7 +331,8 @@ theorem ramificationIdx_eq_of_normal {L : IntermediateField (K₀ k t) Ω} (hFL 
   rw [hul] at h1
   rw [hul'] at h2
   have hcF := card_inertia_inf_conj t (σ : N ≃ₐ[K₀ k t] N) (fixSub t N F)
-    (fun τ hτ => (fixSub t N F).mul_mem ((fixSub t N F).mul_mem σ.2 hτ) ((fixSub t N F).inv_mem σ.2))
+    (fun τ hτ =>
+      (fixSub t N F).mul_mem ((fixSub t N F).mul_mem σ.2 hτ) ((fixSub t N F).inv_mem σ.2))
     (fun τ hτ => (fixSub t N F).mul_mem ((fixSub t N F).mul_mem ((fixSub t N F).inv_mem σ.2) hτ)
       σ.2) u
   have hcL := card_inertia_inf_conj t (σ : N ≃ₐ[K₀ k t] N) (fixSub t N L)
