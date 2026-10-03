@@ -253,4 +253,48 @@ theorem coreStar_of_subfields (E : WeierstrassCurve K) [E.IsElliptic]
 
 end Up
 
+section Main
+
+/-- **[CanLift], Proposition 2.7 over `ℂ`** (the non-arithmetic case): for an elliptic curve
+`E / ℂ` with non-exceptional `j`-invariant, `(E ∖ {0}) / {±1}` is the `ℂ`-core of `E ∖ {0}`. -/
+def CanLift27Complex : Prop :=
+  ∀ (E : WeierstrassCurve ℂ) [E.IsElliptic], (∀ c ∈ excJ, E.j ≠ (c : ℂ)) →
+    IsCoreOf (punctured E) (hemi E)
+
+lemma j_ne_of_map {k K : Type*} [Field k] [Field K] [CharZero k] [CharZero K] (f : k →+* K)
+    (E : WeierstrassCurve k) [E.IsElliptic] (hj : ∀ c ∈ excJ, E.j ≠ (c : k)) :
+    ∀ c ∈ excJ, (E.map f).j ≠ (c : K) := by
+  intro c hc h
+  rw [WeierstrassCurve.map_j, ← map_ratCast f] at h
+  exact hj c hc (f.injective h)
+
+lemma j_ne_of_map' {k K : Type*} [Field k] [Field K] [CharZero k] [CharZero K] (f : k →+* K)
+    (E : WeierstrassCurve k) [E.IsElliptic] (hj : ∀ c ∈ excJ, (E.map f).j ≠ (c : K)) :
+    ∀ c ∈ excJ, E.j ≠ (c : k) := by
+  intro c hc h
+  apply hj c hc
+  rw [WeierstrassCurve.map_j, h, map_ratCast]
+
+/-- **The Lefschetz principle for [CanLift], Proposition 2.7**: the statement over `ℂ` implies
+the statement over every field of characteristic `0`. -/
+theorem canLift27_of_complex (h : CanLift27Complex) : CanLift27.{0} := by
+  intro k _ _ E _ hj
+  rw [isCoreOf_iff_coreStar]
+  let K := AlgebraicClosure k
+  haveI : CharZero K := charZero_of_injective_algebraMap (algebraMap k K).injective
+  refine coreStar_of_map (algebraMap k K) E ?_
+  have hjK := j_ne_of_map (algebraMap k K) E hj
+  refine coreStar_of_subfields (E.map (algebraMap k K)) ?_
+  intro L₀ hL₀alg hL₀c E₀ hE₀ell hE₀
+  haveI : CharZero L₀ := ⟨fun a b h => Nat.cast_injective (R := K) (congrArg Subtype.val h)⟩
+  obtain ⟨ι⟩ := nonempty_ringHom_complex L₀
+  have hj₀ : ∀ c ∈ excJ, E₀.j ≠ (c : L₀) :=
+    j_ne_of_map' (algebraMap L₀ K) E₀ (fun c hc h' => hjK c hc (by
+      have e : (E₀.map (algebraMap L₀ K)).j = (E.map (algebraMap k K)).j := by
+        simp only [hE₀]
+      rw [← e]; exact h'))
+  exact coreStar_of_map ι E₀ (coreStar_of_isCoreOf (h (E₀.map ι) (j_ne_of_map ι E₀ hj₀)))
+
+end Main
+
 end AffOrbicurve
