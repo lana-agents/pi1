@@ -207,4 +207,133 @@ lemma isAlgebraic_exchange {s : Ω} (hs : Transcendental k s) (hst : IsAlgebraic
   rw [Set.range_const] at this
   exact this hst
 
+variable {y : Ω}
+
+set_option maxHeartbeats 4000000 in
+set_option synthInstance.maxHeartbeats 400000 in
+/-- **Descent of `SOmegaTY`-data**: if the data `(L, g)` over `K` are defined over the
+algebraically closed subfield `k` (a finite extension `F₀` of `k(t)` with `L = K(t) · F₀`,
+containing `y` and the coordinate `s` of `g`), then `SOmegaTY` over `k` forces `g` to be the
+canonical morphism. -/
+theorem eq_of_descended [IsAlgClosed k] [CharZero K] (htK : Transcendental K t) {b c : Ω}
+    (hb : b ∈ K₀ k t) (hc : c ∈ K₀ k t) (hy : y ^ 2 + b * y = c) (hk : SOmegaTY k t y)
+    [FiniteDimensional (K₀ K t) (fnTY K t y)] [Algebra.IsSeparable (K₀ K t) (fnTY K t y)]
+    (L : IntermediateField (K₀ K t) Ω) [FiniteDimensional (K₀ K t) L]
+    [Algebra.IsSeparable (K₀ K t) L] (hL : fnTY K t y ≤ L)
+    (het : ∀ w : Ideal (coordRing K t L), w.IsMaximal →
+      (letI := algRing t hL; w.ramificationIdx (coordRing K t (fnTY K t y))) = 1)
+    (g : Hom (ofSubfieldScheme t htK L) (hemiTY K t y htK))
+    (F₀ : IntermediateField (K₀ k t) Ω) [FiniteDimensional (K₀ k t) F₀]
+    (hF₀L : ∀ x ∈ F₀, x ∈ L) (hLF₀ : L ≤ IntermediateField.adjoin (K₀ K t) (F₀ : Set Ω))
+    (hyF₀ : y ∈ F₀)
+    (hsF₀ : coordRingVal t (g.f (coordRingBotEquiv htK Polynomial.X)) ∈ F₀) :
+    g.f = ringMap t (bot_le : (⊥ : IntermediateField (K₀ K t) Ω) ≤ L) := by
+  have ht : Transcendental k t := transcendental_of_bc (K := K) htK
+  haveI : FiniteDimensional (K₀ k t) (fnTY k t y) := finiteDimensional_fnTY hb hc hy
+  haveI : Algebra.IsSeparable (K₀ k t) (fnTY k t y) := isSeparable_fnTY
+  haveI : Normal (K₀ k t) (fnTY k t y) := normal_fnTY hb hc hy
+  haveI : Normal (K₀ K t) (fnTY K t y) := normal_fnTY (K₀_le_bc t hb) (K₀_le_bc t hc) hy
+  haveI : CharZero (K₀ k t) := charZero_of_injective_algebraMap (algebraMap k (K₀ k t)).injective
+  haveI : Algebra.IsSeparable (K₀ k t) F₀ := Algebra.IsAlgebraic.isSeparable_of_perfectField
+  have hL₀ : fnTY k t y ≤ F₀ := by
+    rw [IntermediateField.adjoin_le_iff, Set.singleton_subset_iff]; exact hyF₀
+  have h₁' : fnTY K t y ≤ IntermediateField.adjoin (K₀ K t) (fnTY k t y : Set Ω) := by
+    rw [IntermediateField.adjoin_le_iff, Set.singleton_subset_iff]
+    exact IntermediateField.subset_adjoin _ _ (IntermediateField.subset_adjoin _ _ rfl)
+  -- `F₀` is unramified over `fnTY k t y`
+  have het₀ := etale_of_bc htK hL₀ hL (fnTY_mem_bc y) hF₀L h₁' hLF₀
+    (m₁ := fun _ => 1) (m₂ := fun _ => 1) (m₁' := fun _ => 1) (m₂' := fun _ => 1)
+    (fun _ _ _ => rfl) (fun _ _ _ => rfl) (fun w hw => by rw [mul_one]; exact het w hw)
+  have het₀' : ∀ w : Ideal (coordRing k t F₀), w.IsMaximal →
+      (letI := algRing t hL₀; w.ramificationIdx (coordRing k t (fnTY k t y))) = 1 :=
+    fun w hw => (mul_one _).symm.trans (het₀ w hw)
+  -- the element `s` over `K`
+  set tbK := coordRingBotEquiv (Ω := Ω) htK Polynomial.X
+  set s := coordRingVal t (g.f tbK)
+  have hsL : s ∈ L := (g.f tbK).1.2
+  have hstK : IsIntegral (A₀ K t) s := isIntegral_of_mem_coordRing t (g.f tbK)
+  have htsK : IsIntegral (A₀ K s) t := isIntegral_of_algHom htK g.f g.isIntegral
+  have hsK : Transcendental K s := transcendental_of_isIntegral htK htsK
+  have hgK : g.f = sHom htK hsK hsL hstK htsK := by
+    apply algHom_bot_ext htK
+    apply coordRingVal_injective t
+    change s = coordRingVal t (sHomRing htK hsK hsL hstK htsK tbK)
+    rw [coordRingVal_sHomRing_poly, aeval_X]
+  -- `s` over `k`
+  have hs : Transcendental k s := transcendental_of_bc (K := K) hsK
+  have hsint : IsIntegral (K₀ k t) s :=
+    (IsIntegral.of_finite (K₀ k t) (⟨s, hsF₀⟩ : F₀)).map (IsScalarTower.toAlgHom (K₀ k t) F₀ Ω)
+  have hst : IsIntegral (A₀ k t) s := isIntegral_A₀_of_bc htK hsint hstK
+  have htalg : IsAlgebraic (A₀ k s) t := isAlgebraic_exchange hs hst.isAlgebraic
+  have htint : IsIntegral (K₀ k s) t := by
+    have : IsAlgebraic (K₀ k s) t :=
+      (IsFractionRing.isAlgebraic_iff (A₀ k s) (K₀ k s) Ω).mp htalg
+    exact this.isIntegral
+  have hts : IsIntegral (A₀ k s) t := isIntegral_A₀_of_bc hsK htint htsK
+  -- étaleness of `t ↦ s` on the `s`-line, over `K`
+  have HK := (etale_sHom_iff htK hsK hsL hstK htsK (multTY K t y)).mp (fun w hw => by
+    have := g.etale w hw
+    rw [hgK] at this
+    exact this)
+  -- descended to `k`
+  haveI : FiniteDimensional (K₀ k s) (rebase F₀ hsF₀) := finiteDimensional_rebase (hs := hsF₀) hts
+  have h₂s : ∀ x ∈ rebase F₀ hsF₀, x ∈ rebase L hsL := fun x hx => hF₀L x hx
+  have htF₀ : t ∈ F₀ := F₀.algebraMap_mem ⟨t, IntermediateField.mem_adjoin_simple_self k t⟩
+  have h₂s' : rebase L hsL ≤ IntermediateField.adjoin (K₀ K s) (rebase F₀ hsF₀ : Set Ω) :=
+    fun x hx => adjoin_param_le (IntermediateField.subset_adjoin _ _ htF₀) (hLF₀ hx)
+  have hle_s : (⊥ : IntermediateField (K₀ k s) Ω) ≤ rebase F₀ hsF₀ := bot_le
+  have hle_s' : (⊥ : IntermediateField (K₀ K s) Ω) ≤ rebase L hsL := bot_le
+  have h₁s' : (⊥ : IntermediateField (K₀ K s) Ω) ≤
+      IntermediateField.adjoin (K₀ K s) ((⊥ : IntermediateField (K₀ k s) Ω) : Set Ω) := bot_le
+  have hcomm : ∀ v' : Ideal (coordRing K s (⊥ : IntermediateField (K₀ K s) Ω)),
+      (v'.comap (lineEquiv htK hsK).toRingEquiv.toRingHom).comap
+        (bcMap (bot_mem_bc (k := k) (K := K) (t := t))) =
+      (v'.comap (bcMap (bot_mem_bc (k := k) (K := K) (t := s)))).comap
+        (lineEquiv ht hs).toRingEquiv.toRingHom := by
+    intro v'
+    ext x
+    simp only [Ideal.mem_comap]
+    change lineEquiv htK hsK (bcMap (bot_mem_bc (k := k) (K := K) (t := t)) x) ∈ v' ↔
+      bcMap (bot_mem_bc (k := k) (K := K) (t := s)) (lineEquiv ht hs x) ∈ v'
+    rw [lineEquiv_bcMap ht hs htK hsK]
+  have Hk := etale_of_bc (t := s) hsK hle_s hle_s' bot_mem_bc h₂s h₁s' h₂s'
+    (m₁ := fun v => multTY k t y (v.comap (lineEquiv ht hs).toRingEquiv.toRingHom))
+    (m₂ := fun _ => 1)
+    (m₁' := fun v' => multTY K t y (v'.comap (lineEquiv htK hsK).toRingEquiv.toRingHom))
+    (m₂' := fun _ => 1)
+    (fun v' hv' h0 => by
+      haveI : (v'.comap (lineEquiv htK hsK).toRingEquiv.toRingHom).IsMaximal :=
+        Ideal.comap_isMaximal_of_surjective _ (lineEquiv htK hsK).surjective
+      have hne : (v'.comap (lineEquiv htK hsK).toRingEquiv.toRingHom).comap
+          (bcMap (bot_mem_bc (k := k) (K := K) (t := t))) ≠ ⊥ := by
+        rw [hcomm]
+        intro h0'
+        apply h0
+        have e := comap_comap_symm (lineEquiv ht hs).toRingEquiv.symm
+          (v'.comap (bcMap (bot_mem_bc (k := k) (K := K) (t := s))))
+        rw [RingEquiv.symm_symm] at e
+        rw [← e, h0']
+        exact Ideal.comap_bot_of_injective _ (lineEquiv ht hs).toRingEquiv.symm.injective
+      change multTY K t y _ = multTY k t y _
+      rw [(multTY_bc (k := k) y htK _).2 hne, hcomm])
+    (fun _ _ _ => rfl) (fun w hw => HK w hw)
+  have hetk := (etale_sHom_iff ht hs hsF₀ hst hts (multTY k t y)).mpr (fun w hw => Hk w hw)
+  let g₀ : Hom (ofSubfieldScheme t ht F₀) (hemiTY k t y ht) :=
+    { f := sHom ht hs hsF₀ hst hts
+      injective := sHom_injective ht hs hsF₀ hst hts
+      isIntegral := sHom_isIntegral ht hs hsF₀ hst hts
+      etale := hetk }
+  have hg₀ := hk ht F₀ hL₀ het₀' g₀
+  have hst' : s = t := by
+    have := congrArg (fun φ => coordRingVal t (φ (coordRingBotEquiv (Ω := Ω) ht Polynomial.X))) hg₀
+    change coordRingVal t (sHomRing ht hs hsF₀ hst hts _) = _ at this
+    rw [coordRingVal_sHomRing_poly, aeval_X] at this
+    rw [this]
+    exact (coe_coordRingBotEquiv ht Polynomial.X).trans (aeval_X t)
+  apply algHom_bot_ext htK
+  apply coordRingVal_injective t
+  change s = _
+  rw [hst']
+  exact ((coe_coordRingBotEquiv htK Polynomial.X).trans (aeval_X t)).symm
+
 end AffOrbicurve
