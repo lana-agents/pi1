@@ -774,4 +774,103 @@ theorem sOmegaTY_down [CharZero K] (htK : Transcendental K t) {b c : Ω} (hb : b
 
 end Down
 
+section MapFF
+
+variable {k K : Type u} [Field k] [Field K] (f : k →+* K) (E : WeierstrassCurve k)
+
+/-- The map of function fields `k(E) → K(E_K)`. -/
+noncomputable def ffMap : E.toAffine.FunctionField →+* (E.map f).toAffine.FunctionField :=
+  IsFractionRing.lift (A := E.toAffine.CoordinateRing)
+    (g := (algebraMap (E.map f).toAffine.CoordinateRing (E.map f).toAffine.FunctionField).comp
+      (Affine.CoordinateRing.map E.toAffine f))
+    ((IsFractionRing.injective _ _).comp (Affine.CoordinateRing.map_injective f.injective))
+
+lemma ffMap_algebraMap (a : E.toAffine.CoordinateRing) :
+    ffMap f E (algebraMap _ _ a) = algebraMap _ _ (Affine.CoordinateRing.map E.toAffine f a) :=
+  IsFractionRing.lift_algebraMap _ _
+
+lemma ffMap_ellX : ffMap f E (ellX E) = ellX (E.map f) := by
+  rw [ellX, ffMap_algebraMap, Affine.CoordinateRing.map_mk]
+  simp [ellX]
+
+lemma ffMap_ellY : ffMap f E (ellY E) = ellY (E.map f) := by
+  rw [ellY, ffMap_algebraMap, Affine.CoordinateRing.map_mk]
+  simp [ellY]
+
+end MapFF
+
+section Weq
+
+variable {k Ω : Type u} [Field k] [Field Ω] [Algebra k Ω] {E : WeierstrassCurve k}
+  (j : E.toAffine.FunctionField →ₐ[k] Ω)
+
+/-- `b = a₁ t + a₃`. -/
+noncomputable def bE : Ω := algebraMap k Ω E.a₁ * tE j + algebraMap k Ω E.a₃
+
+/-- `c = t³ + a₂ t² + a₄ t + a₆`. -/
+noncomputable def cE : Ω := tE j ^ 3 + algebraMap k Ω E.a₂ * tE j ^ 2 +
+  algebraMap k Ω E.a₄ * tE j + algebraMap k Ω E.a₆
+
+lemma bE_mem : bE j ∈ K₀ k (tE j) :=
+  add_mem (mul_mem ((K₀ k (tE j)).algebraMap_mem _) (tE_mem_K₀ j)) ((K₀ k (tE j)).algebraMap_mem _)
+
+lemma cE_mem : cE j ∈ K₀ k (tE j) := by
+  have ht := tE_mem_K₀ j
+  unfold cE
+  refine add_mem (add_mem (add_mem (pow_mem ht 3) (mul_mem ((K₀ k (tE j)).algebraMap_mem _)
+    (pow_mem ht 2))) (mul_mem ((K₀ k (tE j)).algebraMap_mem _) ht))
+    ((K₀ k (tE j)).algebraMap_mem _)
+
+lemma yE_sq : yE j ^ 2 + bE j * yE j = cE j := by
+  have h' := congrArg j (ellY_sq E)
+  simp only [map_add, map_mul, map_pow, AlgHom.commutes] at h'
+  exact h'
+
+end Weq
+
+section CoreStarMap
+
+variable {k K : Type u} [Field k] [Field K] [CharZero k] (f : k →+* K)
+  (E : WeierstrassCurve k) [E.IsElliptic]
+
+set_option maxHeartbeats 1000000 in
+/-- **`CoreStar` descends along any field embedding.** -/
+theorem coreStar_of_map [CharZero K] [(E.map f).IsElliptic] (h : CoreStar (E.map f)) :
+    CoreStar E := by
+  letI : Algebra k K := f.toAlgebra
+  let E' := E.map f
+  let Ω := AlgebraicClosure E'.toAffine.FunctionField
+  haveI : IsScalarTower k K Ω := inferInstance
+  let jK : E'.toAffine.FunctionField →ₐ[K] Ω := IsScalarTower.toAlgHom K _ _
+  let jk : E.toAffine.FunctionField →ₐ[k] Ω :=
+    { (jK.toRingHom.comp (ffMap f E)) with
+      commutes' := fun c => by
+        change jK (ffMap f E (algebraMap k _ c)) = algebraMap k Ω c
+        rw [IsScalarTower.algebraMap_apply k K Ω]
+        change _ = algebraMap K Ω (f c)
+        have : algebraMap k E.toAffine.FunctionField c =
+            algebraMap E.toAffine.CoordinateRing _ (algebraMap k _ c) := rfl
+        rw [this, ffMap_algebraMap]
+        have h2 : Affine.CoordinateRing.map E.toAffine f (algebraMap k _ c) =
+            algebraMap K E'.toAffine.CoordinateRing (f c) := by
+          change Affine.CoordinateRing.map E.toAffine f (Affine.CoordinateRing.mk _ (C (C c))) = _
+          rw [Affine.CoordinateRing.map_mk]
+          simp; rfl
+        rw [h2, ← IsScalarTower.algebraMap_apply, AlgHom.commutes] }
+  have ht : tE jk = tE jK := by
+    change jK (ffMap f E (ellX E)) = _
+    rw [ffMap_ellX]; rfl
+  have hy : yE jk = yE jK := by
+    change jK (ffMap f E (ellY E)) = _
+    rw [ffMap_ellY]; rfl
+  rw [coreStar_iff_sOmega jk, sOmega_iff_sOmegaTY]
+  rw [coreStar_iff_sOmega jK, sOmega_iff_sOmegaTY] at h
+  have hb : bE jk ∈ K₀ k (tE jK) := ht ▸ bE_mem jk
+  have hc : cE jk ∈ K₀ k (tE jK) := ht ▸ cE_mem jk
+  have heq : yE jK ^ 2 + bE jk * yE jK = cE jk := hy ▸ yE_sq jk
+  rw [ht, hy]
+  exact sOmegaTY_down (transcendental_tE jK) hb hc heq h
+
+end CoreStarMap
+
 end AffOrbicurve
