@@ -2,6 +2,7 @@ module
 
 public import Pi1.Orbicurve.Lefschetz
 public import Mathlib.RingTheory.Polynomial.Subring
+public import Mathlib.RingTheory.AlgebraicIndependent.Transcendental
 
 /-!
 # Descent of the data of `CoreStar` to algebraically closed subfields
@@ -178,5 +179,32 @@ theorem isIntegral_A₀_of_bc [IsAlgClosed k] (htK : Transcendental K t) {x : Ω
   have h1 : pA.map (algebraMap (A₀ k t) Ω) = q := Polynomial.map_toSubring q (A₀ k t).toSubring hqc
   rw [← Polynomial.eval_map, h1, Polynomial.eval_map, ← aeval_def]
   exact minpoly.aeval _ _
+
+omit [Field K] [Algebra k K] [Algebra K Ω] [IsScalarTower k K Ω] [IsAlgClosed Ω] [CharZero k] in
+/-- **Exchange**: if `s` is transcendental over `k` and algebraic over `k[t]`, then `t` is
+algebraic over `k[s]`. -/
+lemma isAlgebraic_exchange {s : Ω} (hs : Transcendental k s) (hst : IsAlgebraic (A₀ k t) s) :
+    IsAlgebraic (A₀ k s) t := by
+  by_contra h
+  have h' : Transcendental (Algebra.adjoin k (Set.range fun _ : Unit => s)) t := by
+    rw [Set.range_const]; exact h
+  have hx : AlgebraicIndependent k (fun _ : Unit => s) :=
+    (algebraicIndependent_unique_type_iff).mpr hs
+  have hy := (hx.option_iff_transcendental t).mpr h'
+  let e : Option Unit → Option Unit := fun o => o.elim (some ()) (fun _ => none)
+  have he : Function.Injective e := by
+    intro a b hab
+    rcases a with _ | ⟨⟨⟩⟩ <;> rcases b with _ | ⟨⟨⟩⟩ <;> simp_all [e]
+  have hz := hy.comp e he
+  have hz' : AlgebraicIndependent k (fun o : Option Unit => o.elim s (fun _ : Unit => t)) := by
+    convert hz using 1
+    funext o
+    rcases o with _ | ⟨⟨⟩⟩ <;> rfl
+  have ht : AlgebraicIndependent k (fun _ : Unit => t) := by
+    have := hz'.comp (fun u : Unit => some u) (Option.some_injective _)
+    exact this
+  have := (ht.option_iff_transcendental s).mp hz'
+  rw [Set.range_const] at this
+  exact this hst
 
 end AffOrbicurve
