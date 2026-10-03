@@ -9,7 +9,7 @@ public import Mathlib.FieldTheory.RatFunc.IntermediateField
 # A criterion for cores
 
 Let `k` be a field of characteristic `0`, `X`, `H` affine orbicurves over `k` and `π : X → H` a
-finite étale morphism. If every finite étale cover `Z → X` admits **at most one** finite étale
+finite étale morphism. If every finite étale cover `Z → X` has **at most one** finite étale
 morphism `Z → H`, then `H` is the `k`-core of `X` (`AffOrbicurve.isCoreOf_of_subsingleton`).
 
 Indeed, let `Y ∈ \overline{Loc}_k(X)`, with finite étale `Z → X`, `ψ : Z → Y`. Morphisms
@@ -278,7 +278,7 @@ section Criterion
 variable [CharZero k]
 
 set_option maxHeartbeats 2000000 in
-/-- **The key step of the criterion**: if every finite étale cover of `X` admits at most one
+/-- **The key step of the criterion**: if every finite étale cover of `X` has at most one
 morphism to `H`, then for finite étale `φ : Z → X` and `ψ : Z → Y`, the ring map of `Z → X → H`
 factors through `ψ`. -/
 theorem mem_range_of_subsingleton {X H Y Z : AffOrbicurve k} (π : Hom X H)
@@ -380,7 +380,7 @@ theorem mem_range_of_subsingleton {X H Y Z : AffOrbicurve k} (π : Hom X H)
   rfl
 
 /-- **Criterion for cores**: if `π : X → H` is finite étale and every finite étale cover of `X`
-admits at most one finite étale morphism to `H`, then `H` is the `k`-core of `X`. -/
+has at most one finite étale morphism to `H`, then `H` is the `k`-core of `X`. -/
 theorem isCoreOf_of_subsingleton {X H : AffOrbicurve k} (π : Hom X H)
     (h : ∀ Z : AffOrbicurve k, Hom Z X → Subsingleton (Hom Z H)) : IsCoreOf X H := by
   refine ⟨⟨X, ⟨Hom.id X⟩, ⟨π⟩⟩, fun Y hY => ?_⟩
