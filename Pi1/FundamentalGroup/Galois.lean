@@ -396,18 +396,16 @@ def forgetInventIso [IsSepClosed Ω] : 𝟭 (FiniteEtale _) ≅ forgetScheme Ω 
       dsimp [← AlgEquiv.symm_toRingEquiv, -_root_.IsArtinianRing.equivPi_apply]
       simp only [AlgEquiv.apply_symm_apply, RingEquiv.piCongrRight_apply,
         RingEquiv.piCongrLeft_symm_apply, Equiv.symm_symm, RingEquiv.piCongrLeft'_apply,
-        Equiv.symm_trans_apply, Homeomorph.coe_symm_toEquiv, RingHom.pi_apply, Pi.evalRingHom_apply,
-        RingEquiv.coe_ofBijective]
+        RingHom.pi_apply, Pi.evalRingHom_apply, RingEquiv.coe_ofBijective]
       rw [IsArtinianRing.equivPi_naturality_apply]
       simp only [AlgEquiv.apply_symm_apply, RingHom.pi_apply, RingHom.coe_comp, Function.comp_apply,
         Pi.evalRingHom_apply, RingEquiv.piCongrRight_apply, RingEquiv.piCongrLeft_symm_apply,
-        Equiv.symm_symm, RingEquiv.piCongrLeft'_apply, Equiv.symm_trans_apply,
-        Homeomorph.coe_symm_toEquiv, RingEquiv.coe_ofBijective, Ideal.quotientMap_algebraMap,
+        Equiv.symm_symm, RingEquiv.piCongrLeft'_apply,
+        RingEquiv.coe_ofBijective, Ideal.quotientMap_algebraMap,
         appTop_left_algebraMap, Ideal.Quotient.mk_algebraMap, algebraMap.coe_inj]
       congr 1
       simp only [forgetScheme]
-      simp only [Iso.schemeIsoToHomeo, Scheme.homeoOfIso_symm, Scheme.homeoOfIso_apply,
-        Iso.symm_hom]
+      simp only [Iso.schemeIsoToHomeo]
       rw [← FintypeCat.hom_apply]
       dsimp [- FintypeCat.hom_apply]
       rw [← Scheme.Hom.comp_apply, ← Scheme.isoSpec_inv_naturality]
@@ -431,6 +429,7 @@ variable {ξ} in
 def fiberPt {A : FiniteEtale X} (x : (fiber ξ).obj A) : A.left :=
   (pullback.fst A.hom ξ).base x
 
+set_option linter.overlappingInstances false in
 instance [IsSepClosed Ω] : PreservesFiniteLimits (pullback ξ) := by
   dsimp [pullback]
   apply AffineAnd.preservesFiniteLimits_pullback
@@ -583,16 +582,19 @@ instance {Y : Scheme.{u}} [Nonempty Y] (g : Y ⟶ X) [ConnectedSpace X] :
     apply IsFiniteEtale.isIso_of_isIso_snd' f.left (pullback.fst B.hom g)
   apply isIso_of_isIso_left
 
+set_option linter.overlappingInstances false in
 instance [ConnectedSpace X] [IsSepClosed Ω] : (fiber ξ).ReflectsIsomorphisms := by
   dsimp [fiber]
   infer_instance
 
+set_option linter.overlappingInstances false in
 instance [IsSepClosed Ω] : PreservesFiniteColimits (fiber ξ) := by
   dsimp [fiber]
   apply Limits.comp_preservesFiniteColimits
 
 open PreGaloisCategory
 
+set_option linter.overlappingInstances false in
 /-- If `X` is a connected scheme and `ξ : Spec Ω ⟶ X` is a geometric point,
 taking fibers over `ξ` is a fiber functor. -/
 instance fiberFunctor [ConnectedSpace X] [IsSepClosed Ω] : FiberFunctor (fiber ξ) where

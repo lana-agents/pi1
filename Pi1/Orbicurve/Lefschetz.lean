@@ -39,6 +39,7 @@ def CoreStar : Prop :=
 
 variable {E}
 
+set_option linter.unusedSectionVars false in
 lemma coreStar_of_isCoreOf (h : IsCoreOf (punctured E) (hemi E)) : CoreStar E :=
   fun Z φ => (h.2 Z (LocBar.of_hom φ)).2
 
@@ -479,7 +480,8 @@ lemma sHom_isIntegral : (sHom ht hs hsL hst hts).toRingHom.IsIntegral := by
 include ht in
 lemma algHom_bot_ext {B : Type*} [CommRing B] [Algebra F B]
     {f g : coordRing F t (⊥ : IntermediateField (K₀ F t) Ω) →ₐ[F] B}
-    (h : f (coordRingBotEquiv ht Polynomial.X) = g (coordRingBotEquiv ht Polynomial.X)) : f = g := by
+    (h : f (coordRingBotEquiv ht Polynomial.X) = g (coordRingBotEquiv ht Polynomial.X)) :
+    f = g := by
   have : f.comp (coordRingBotEquiv ht).toAlgHom = g.comp (coordRingBotEquiv ht).toAlgHom :=
     Polynomial.algHom_ext h
   ext a
@@ -655,7 +657,8 @@ variable {k K Ω : Type u} [Field k] [Field K] [Field Ω] [Algebra k K] [Algebra
 set_option maxHeartbeats 4000000 in
 set_option synthInstance.maxHeartbeats 400000 in
 /-- **`SOmegaTY` descends along any extension of the constant field.** -/
-theorem sOmegaTY_down [CharZero K] (htK : Transcendental K t) {b c : Ω} (hb : b ∈ K₀ k t) (hc : c ∈ K₀ k t)
+theorem sOmegaTY_down [CharZero K] (htK : Transcendental K t) {b c : Ω} (hb : b ∈ K₀ k t)
+    (hc : c ∈ K₀ k t)
     (hy : y ^ 2 + b * y = c) (hK : SOmegaTY K t y) : SOmegaTY k t y := by
   intro ht _ _ L _ _ hL het g
   haveI : Normal (K₀ k t) (fnTY k t y) := normal_fnTY hb hc hy

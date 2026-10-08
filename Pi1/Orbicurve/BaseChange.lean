@@ -100,7 +100,7 @@ noncomputable def bcMap {F : IntermediateField (K₀ k t) Ω} {F' : Intermediate
     (((bcMap h a : coordRing K t F') : F') : Ω) = ((a : F) : Ω) := rfl
 
 lemma bcMap_injective {F : IntermediateField (K₀ k t) Ω} {F' : IntermediateField (K₀ K t) Ω}
-    (h : ∀ x ∈ F, x ∈ F') : Function.Injective (bcMap h) := fun a b hab =>
+    (h : ∀ x ∈ F, x ∈ F') : Function.Injective (bcMap h) := fun _ _ hab =>
   Subtype.ext (Subtype.ext (congrArg (fun c : coordRing K t F' => ((c : F') : Ω)) hab))
 
 /-- `bcMap` commutes with the inclusions. -/
@@ -143,6 +143,7 @@ lemma le_ramificationIdx'_of_le_pow {R S : Type*} [CommRing R] [CommRing S] [Alg
     Multiset.nsmul_singleton, ← Multiset.le_count_iff_replicate_le] at hdvd
   exact hdvd
 
+set_option linter.unusedVariables false in
 /-- **Ramification indices do not drop under an unramified extension of the base**: for a
 commutative square `R → S`, `R' → S'` (`α : R → R'`, `β : S → S'`) of extensions of Dedekind
 domains, `R'` principal, a nonzero prime `u'` of `S'` with `u = β⁻¹(u') ≠ 0`, if some element of
@@ -232,16 +233,19 @@ lemma bot_mem_bc : ∀ x ∈ (⊥ : IntermediateField (K₀ k t) Ω),
   exact IntermediateField.mem_bot.mpr ⟨K₀Map t c, rfl⟩
 
 lemma bcMap_coordRingBotEquiv (htk : Transcendental k t) (htK : Transcendental K t) (q : k[X]) :
-    bcMap (bot_mem_bc (k := k) (K := K) (t := t)) (coordRingBotEquiv htk q) = coordRingBotEquiv htK (q.map (algebraMap k K)) := by
+    bcMap (bot_mem_bc (k := k) (K := K) (t := t)) (coordRingBotEquiv htk q) =
+      coordRingBotEquiv htK (q.map (algebraMap k K)) := by
   apply Subtype.ext; apply Subtype.ext
   rw [coe_bcMap, coe_coordRingBotEquiv, coe_coordRingBotEquiv, Polynomial.aeval_map_algebraMap]
 
+set_option linter.unusedVariables false in
 /-- **`k[t] → K[t]` is unramified** (characteristic `0`): for a nonzero prime `v'` of `K[t]` over
 the nonzero prime `v` of `k[t]`, some element of `v` is not in `v'²`. -/
 lemma exists_mem_not_mem_sq [CharZero k] (htk : Transcendental k t) (htK : Transcendental K t)
     (v' : Ideal (coordRing K t (⊥ : IntermediateField (K₀ K t) Ω))) [hv' : v'.IsPrime]
     (hv'0 : v' ≠ ⊥) (hv0 : v'.comap (bcMap (bot_mem_bc (k := k) (K := K) (t := t))) ≠ ⊥) :
-    ∃ a ∈ v'.comap (bcMap (bot_mem_bc (k := k) (K := K) (t := t))), bcMap (bot_mem_bc (k := k) (K := K) (t := t)) a ∉ v' ^ 2 := by
+    ∃ a ∈ v'.comap (bcMap (bot_mem_bc (k := k) (K := K) (t := t))),
+      bcMap (bot_mem_bc (k := k) (K := K) (t := t)) a ∉ v' ^ 2 := by
   classical
   set ek := coordRingBotEquiv (Ω := Ω) htk
   set eK := coordRingBotEquiv (Ω := Ω) htK
@@ -262,7 +266,8 @@ lemma exists_mem_not_mem_sq [CharZero k] (htk : Transcendental k t) (htK : Trans
   obtain ⟨π, hπ⟩ := (IsPrincipalIdealRing.principal Q).principal
   have hQπ : Q = Ideal.span {π} := hπ
   have hπprime : Prime π := by
-    rw [← Ideal.span_singleton_prime (fun h => hQ0 (by rw [hQπ, h, Ideal.span_singleton_eq_bot.mpr rfl])),
+    rw [← Ideal.span_singleton_prime
+      (fun h => hQ0 (by rw [hQπ, h, Ideal.span_singleton_eq_bot.mpr rfl])),
       ← hQπ]
     infer_instance
   have hsq : Squarefree (π.map (algebraMap k K)) :=
@@ -363,6 +368,7 @@ noncomputable def res : (N' ≃ₐ[K₀ K t] N') →* (N ≃ₐ[K₀ k t] N) whe
     ((res hN σ' x : N) : Ω) = ((σ' ⟨x, hN x x.2⟩ : N') : Ω) := rfl
 
 include hN in
+set_option linter.unusedSectionVars false in
 /-- An automorphism of `N' = K(t) · N` fixing `N` is trivial. -/
 lemma eq_of_fix (hN' : N' ≤ IntermediateField.adjoin (K₀ K t) (N : Set Ω))
     (σ' : N' ≃ₐ[K₀ K t] N') (h : ∀ x : N', (x : Ω) ∈ N → σ' x = x) : σ' = 1 := by
@@ -407,6 +413,7 @@ variable {t} {N : IntermediateField (K₀ k t) Ω} {N' : IntermediateField (K₀
   (hN : ∀ x ∈ N, x ∈ N') [Normal (K₀ k t) N] [FiniteDimensional (K₀ k t) N]
 
 set_option synthInstance.maxHeartbeats 400000 in
+set_option linter.unusedSectionVars false in
 lemma bcMap_smul (σ' : N' ≃ₐ[K₀ K t] N') (x : coordRing k t N) :
     bcMap hN (res hN σ' • x) = σ' • bcMap hN x := rfl
 
@@ -721,6 +728,7 @@ section Closure
 
 variable {t} [IsAlgClosed Ω] [CharZero k]
 
+set_option linter.unusedSectionVars false in
 lemma rootSet_map_K₀Map (p : (K₀ k t)[X]) :
     (p.map (K₀Map (K := K) t)).rootSet Ω = p.rootSet Ω := by
   classical
@@ -728,6 +736,7 @@ lemma rootSet_map_K₀Map (p : (K₀ k t)[X]) :
     Polynomial.aroots_def, Polynomial.map_map]
   rfl
 
+set_option linter.unusedVariables false in
 /-- **Galois closures and their base changes**: every finite extension `F` of `k(t)` in `Ω` lies in
 a finite Galois extension `N` of `k(t)` whose compositum `N' = K(t) · N` is finite Galois over
 `K(t)`. -/
@@ -883,6 +892,7 @@ theorem ramificationIdx_bc (htK : Transcendental K t)
       exact Nat.eq_of_mul_eq_mul_right hpos hmc'
 
 omit [IsAlgClosed Ω] in
+set_option linter.unusedSectionVars false in
 /-- **Restriction is surjective** when `k` is algebraically closed (`K(t) ∩ N = k(t)`). -/
 theorem res_surjective [IsAlgClosed k] (htK : Transcendental K t)
     {N : IntermediateField (K₀ k t) Ω} {N' : IntermediateField (K₀ K t) Ω}
@@ -966,7 +976,8 @@ theorem exists_comap_bc_eq [IsAlgClosed k] (htK : Transcendental K t)
     have : P = ⊥ := by rw [hPq, Ideal.span_singleton_eq_bot.mpr rfl]
     exact Ring.ne_bot_of_isMaximal_of_not_isField hPm (Polynomial.not_isField k) this
   have hqu : ¬ IsUnit q := fun h => hPm.ne_top (by rw [hPq, Ideal.span_singleton_eq_top]; exact h)
-  obtain ⟨c, hc⟩ := IsAlgClosed.exists_root q (fun h => hqu (Polynomial.isUnit_iff_degree_eq_zero.mpr h))
+  obtain ⟨c, hc⟩ :=
+    IsAlgClosed.exists_root q (fun h => hqu (Polynomial.isUnit_iff_degree_eq_zero.mpr h))
   have hPc : P = RingHom.ker (Polynomial.evalRingHom c) := by
     refine hPm.eq_of_le (RingHom.ker_ne_top _) ?_
     rw [hPq, Ideal.span_le, Set.singleton_subset_iff]

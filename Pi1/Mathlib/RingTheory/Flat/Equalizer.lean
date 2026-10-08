@@ -120,7 +120,7 @@ lemma auxEquivRHS_symm_tmul (f g : A →ₐ[R] B) (T : Type u) [CommRing T] [Alg
     [Module.Flat R T] (x : S) :
     (auxEquivRHS (S := S) f g T).symm (algebraMap (T ⊗[R] S) _ (1 ⊗ₜ x)) =
       1 ⊗ₜ algebraMap _ _ x := by
-  simp only [auxEquivRHS, AlgHom.equalizerCongr_symm_apply]
+  simp only [auxEquivRHS]
   simp
   exact AlgHom.tensorEqualizerEquiv_symm_apply ..
 
@@ -128,7 +128,7 @@ lemma auxEquivRHS_symm_tmul' (f g : A →ₐ[R] B) (T : Type u) [CommRing T] [Al
     [Module.Flat R T] (x : AlgHom.equalizer f g) :
     (auxEquivRHS (S := S) f g T).symm ⟨1 ⊗ₜ (1 ⊗ₜ x), by simp [show f x = g x from x.2]⟩ =
       1 ⊗ₜ ⟨1 ⊗ₜ x, by simp [show f x = g x from x.2]⟩ := by
-  simp only [auxEquivRHS, AlgHom.equalizerCongr_symm_apply]
+  simp only [auxEquivRHS]
   simp
   exact AlgHom.tensorEqualizerEquiv_symm_apply ..
 

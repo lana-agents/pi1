@@ -33,6 +33,7 @@ variable {B : Type*} [CommRing B] [IsDedekindDomain B]
 
 local notation "R" => Localization.AtPrime u
 
+set_option linter.unusedSectionVars false in
 lemma comap_eq_of_mem_inertia {σ : G} (hσ : σ ∈ u.inertia G) :
     u = u.comap (MulSemiringAction.toRingHom G B σ) := by
   ext x

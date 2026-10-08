@@ -138,7 +138,7 @@ variable {E F : Type*}
 
 def AlgHom.compRight (R S : Type*) [CommRing R] [CommRing S] [Algebra R S] (σ : E → F) :
     (F → S) →ₐ[R] E → S :=
-  Pi.algHom R _ (fun f ↦ Pi.evalAlgHom R _ (σ f))
+  AlgHom.pi (fun f ↦ Pi.evalAlgHom R _ (σ f))
 
 @[simp]
 lemma AlgHom.compRight_apply (R S : Type*) [CommRing R] [CommRing S] [Algebra R S] (σ : E → F)
@@ -164,7 +164,7 @@ def AlgHom.equalizerCompRightEquiv (R S : Type*) [CommRing R] [CommRing S] [Alge
     AlgHom.equalizer (AlgHom.compRight R S σ) (AlgHom.compRight R S τ) ≃ₐ[R]
       Function.Coequalizer σ τ → S :=
   AlgEquiv.ofAlgHom
-    (Pi.algHom R _ (Function.Coequalizer.desc σ τ
+    (AlgHom.pi (Function.Coequalizer.desc σ τ
       (fun f ↦ (Pi.evalAlgHom R (fun _ ↦ S) f).comp
         (equalizer (AlgHom.compRight R S σ) (AlgHom.compRight R S τ)).val)
         (by ext f ⟨x, hx⟩; exact congrFun hx f)))

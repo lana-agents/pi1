@@ -111,6 +111,7 @@ variable [CharZero F] [FiniteDimensional (K₀ F t) (fnTY F t y)]
 
 include ht in
 set_option synthInstance.maxHeartbeats 400000 in
+set_option linter.unusedSectionVars false in
 lemma multTY_pos (v : Ideal (coordRing F t (⊥ : IntermediateField (K₀ F t) Ω)))
     (hv : v.IsMaximal) : 0 < multTY F t y v := by
   have hle : (⊥ : IntermediateField (K₀ F t) Ω) ≤ fnTY F t y := bot_le
@@ -135,6 +136,7 @@ lemma multTY_pos (v : Ideal (coordRing F t (⊥ : IntermediateField (K₀ F t) �
   exact Ideal.ramificationIdx_pos _ _
 
 include ht in
+set_option linter.unusedSectionVars false in
 lemma multTY_finite :
     {v : Ideal (coordRing F t (⊥ : IntermediateField (K₀ F t) Ω)) |
       v.IsMaximal ∧ multTY F t y v ≠ 1}.Finite :=
@@ -150,6 +152,7 @@ variable [IsAlgClosed Ω] [Normal (K₀ F t) (fnTY F t y)]
 include ht in
 set_option maxHeartbeats 1000000 in
 set_option synthInstance.maxHeartbeats 400000 in
+set_option linter.unusedSectionVars false in
 /-- All primes over a given prime of `F[t]` have the same ramification index (`F(t)(y) / F(t)`
 is Galois). -/
 lemma multTY_eq (w : Ideal (coordRing F t (fnTY F t y))) [hw : w.IsMaximal] :
@@ -208,6 +211,8 @@ lemma fnTY_mem_bc : ∀ x ∈ fnTY k t y, x ∈ fnTY K t y := by
 include htK in
 set_option maxHeartbeats 1000000 in
 set_option synthInstance.maxHeartbeats 400000 in
+set_option linter.unusedSectionVars false in
+set_option linter.overlappingInstances false in
 /-- **The stabilizer orders of the quotient orbicurve under base change.** -/
 lemma multTY_bc (v' : Ideal (coordRing K t (⊥ : IntermediateField (K₀ K t) Ω)))
     [hv' : v'.IsMaximal] :

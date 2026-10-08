@@ -243,6 +243,7 @@ theorem ramificationIdx_mul_card {L : IntermediateField (K₀ k t) Ω} (hFL : F 
   rw [← ramificationIdx_eq_card_inertia t ht hFN u, ← ramificationIdx_eq_card_inertia t ht hLN u]
   exact htower.symm
 
+set_option linter.unusedSectionVars false in
 lemma card_inertia_inf_conj (σ : N ≃ₐ[K₀ k t] N) (H : Subgroup (N ≃ₐ[K₀ k t] N))
     (hH : ∀ τ ∈ H, σ * τ * σ⁻¹ ∈ H) (hH' : ∀ τ ∈ H, σ⁻¹ * τ * σ ∈ H)
     (u : Ideal (coordRing k t N)) :

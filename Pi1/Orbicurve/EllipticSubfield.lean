@@ -182,12 +182,14 @@ variable [CharZero k] [E.IsElliptic]
 
 /-- The coordinate rings of `E ∖ {0}`: `puncturedRing E ≅ coordRing (fnFieldE j)`. -/
 noncomputable def puncturedEquiv : puncturedRing E ≃+* coordRing k (tE j) (fnFieldE j) :=
-  integralClosureEquiv (Polynomial.algEquivOfTranscendental k (tE j) (transcendental_tE j)).toRingEquiv
+  integralClosureEquiv
+    (Polynomial.algEquivOfTranscendental k (tE j) (transcendental_tE j)).toRingEquiv
     (funEquiv j) (fun p => by
       apply Subtype.ext
       rw [coe_funEquiv, j_algebraMap_poly]
       exact (coe_algEquivOfTranscendental (transcendental_tE j) p).symm)
 
+set_option linter.unusedSectionVars false in
 @[simp] lemma coe_puncturedEquiv (a : puncturedRing E) :
     (((puncturedEquiv j a : coordRing k (tE j) (fnFieldE j)) : fnFieldE j) : Ω) =
       j (a : E.toAffine.FunctionField) := rfl
@@ -269,6 +271,7 @@ instance normal_fnFieldE : Normal (K₀ k (tE j)) (fnFieldE j) := by
   exact Normal.of_isSplittingField Q
 
 omit [IsAlgClosed Ω] in
+set_option linter.unusedSectionVars false in
 lemma bot_le_fnFieldE : (⊥ : IntermediateField (K₀ k (tE j)) Ω) ≤ fnFieldE j := bot_le
 
 /-- **The stabilizer orders of `(E ∖ {0}) / {±1}`**: the ramification indices of `k(E) / k(t)`. -/
@@ -306,6 +309,7 @@ lemma multE_eq (w : Ideal (coordRing k (tE j) (fnFieldE j))) [hw : w.IsMaximal] 
   exact σ.apply_symm_apply x
 
 set_option synthInstance.maxHeartbeats 400000 in
+set_option linter.unusedSectionVars false in
 lemma multE_pos (v : Ideal (coordRing k (tE j) (⊥ : IntermediateField (K₀ k (tE j)) Ω)))
     (hv : v.IsMaximal) : 0 < multE j v := by
   have ht := transcendental_tE j
@@ -329,6 +333,7 @@ lemma multE_pos (v : Ideal (coordRing k (tE j) (⊥ : IntermediateField (K₀ k 
   have := hex.choose_spec.1
   exact Ideal.ramificationIdx_pos _ _
 
+set_option linter.unusedSectionVars false in
 lemma multE_finite :
     {v : Ideal (coordRing k (tE j) (⊥ : IntermediateField (K₀ k (tE j)) Ω)) |
       v.IsMaximal ∧ multE j v ≠ 1}.Finite :=

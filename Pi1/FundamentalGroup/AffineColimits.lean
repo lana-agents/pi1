@@ -107,8 +107,8 @@ def CategoryTheory.Limits.coneEquivFan {C D : Type*} [Category C] [Category D] (
   unitIso := eqToIso rfl
   counitIso := eqToIso rfl
 
-@[implicit_reducible]
-def CategoryTheory.Limits.preservesLimitsOfShapeDiscrete {C D J : Type*} [Category C] [Category D]
+theorem CategoryTheory.Limits.preservesLimitsOfShapeDiscrete {C D J : Type*} [Category C]
+    [Category D]
     (F : C ⥤ D) [∀ (f : J → C), PreservesLimit (Discrete.functor f) F] :
     PreservesLimitsOfShape (Discrete J) F where
   preservesLimit :=
@@ -152,6 +152,7 @@ lemma Scheme.Cover.ColimitGluingData.pullbackGluedIso_hom (i : 𝒰.I₀) :
       pullback.fst _ _ := by
   simp [pullbackGluedIso, glued]
 
+set_option linter.overlappingInstances false in
 def Scheme.Cover.ColimitGluingData.mapCoconePullback (i : 𝒰.I₀) :
     (MorphismProperty.Over.pullback P ⊤ (𝒰.f i)).mapCocone
       d.gluedCocone ≅ d.cocone i := by
@@ -195,23 +196,23 @@ def ΓpullbackIsoPushout : Γ(pullback f g, ⊤) ≅ pushout f.appTop g.appTop :
   IsPushout.isoPushout (Γ_isPushout (f := f) (g := g) <| IsPullback.of_hasPullback f g)
 
 @[reassoc (attr := simp)]
-def inl_ΓpullbackIsoPushout_inv :
+theorem inl_ΓpullbackIsoPushout_inv :
     pushout.inl f.appTop g.appTop ≫ (ΓpullbackIsoPushout f g).inv = (pullback.fst f g).appTop := by
   simp [ΓpullbackIsoPushout]
 
 @[reassoc (attr := simp)]
-def inr_ΓpullbackIsoPushout_inv :
+theorem inr_ΓpullbackIsoPushout_inv :
     pushout.inr f.appTop g.appTop ≫ (ΓpullbackIsoPushout f g).inv = (pullback.snd f g).appTop := by
   simp [ΓpullbackIsoPushout]
 
 @[reassoc (attr := simp)]
-def app_fst_ΓpullbackIsoPushout_hom :
+theorem app_fst_ΓpullbackIsoPushout_hom :
      (pullback.fst f g).appTop ≫ (ΓpullbackIsoPushout f g).hom =
         pushout.inl f.appTop g.appTop := by
   simp [ΓpullbackIsoPushout]
 
 @[reassoc (attr := simp)]
-def app_snd_ΓpullbackIsoPushout_hom :
+theorem app_snd_ΓpullbackIsoPushout_hom :
      (pullback.snd f g).appTop ≫ (ΓpullbackIsoPushout f g).hom =
         pushout.inr f.appTop g.appTop := by
   simp [ΓpullbackIsoPushout]
@@ -357,6 +358,7 @@ end
 
 variable {J : Type t} [Category J] [UnivLE.{t, u}]
 
+set_option linter.overlappingInstances false in
 instance [IsAffine S] : HasLimitsOfShape J (Affine S)ᵒᵖ :=
   Adjunction.hasLimitsOfShape_of_equivalence (Γ S)
 

@@ -48,7 +48,8 @@ lemma exists_j_of_map (E : WeierstrassCurve k) (E' : WeierstrassCurve K)
         rw [this, ffMap_algebraMap]
         have h2 : Affine.CoordinateRing.map E.toAffine (algebraMap k K) (algebraMap k _ c) =
             algebraMap K (E.map (algebraMap k K)).toAffine.CoordinateRing (algebraMap k K c) := by
-          change Affine.CoordinateRing.map E.toAffine (algebraMap k K) (Affine.CoordinateRing.mk _ (C (C c))) = _
+          change Affine.CoordinateRing.map E.toAffine (algebraMap k K)
+            (Affine.CoordinateRing.mk _ (C (C c))) = _
           rw [Affine.CoordinateRing.map_mk]
           simp; rfl
         rw [h2, ← IsScalarTower.algebraMap_apply, AlgHom.commutes] }, ?_, ?_⟩
@@ -94,7 +95,8 @@ lemma eval_mem_of_coeffs {R : Type*} [CommRing R] (T : Subring R) (p : Polynomia
 variable {k K Ω : Type u} [Field k] [Field K] [Field Ω] [Algebra k K] [Algebra K Ω] [Algebra k Ω]
   [IsScalarTower k K Ω]
 
-lemma aeval_mem_A₀ (t : Ω) (P : K[X]) (hP : ∀ i, P.coeff i ∈ (algebraMap k K).range) : aeval t P ∈ A₀ k t := by
+lemma aeval_mem_A₀ (t : Ω) (P : K[X]) (hP : ∀ i, P.coeff i ∈ (algebraMap k K).range) :
+    aeval t P ∈ A₀ k t := by
   rw [aeval_eq_sum_range]
   refine Subalgebra.sum_mem _ fun i _ => ?_
   obtain ⟨a, ha⟩ := hP i
@@ -186,7 +188,8 @@ theorem coreStar_of_subfields (E : WeierstrassCurve K) [E.IsElliptic]
       exact Polynomial.coeff_mem_coeffs hi
     · refine Or.inl (Set.mem_biUnion hc (Or.inr ?_))
       exact Polynomial.coeff_mem_coeffs hi
-  have hcoeff : ∀ (r : (K₀ K t)[X]), (∀ c ∈ r.coeffs, c ∈ C) → ∀ i, ((r.coeff i : K₀ K t) : Ω) ∈ K₀ L₀ t := by
+  have hcoeff : ∀ (r : (K₀ K t)[X]), (∀ c ∈ r.coeffs, c ∈ C) →
+      ∀ i, ((r.coeff i : K₀ K t) : Ω) ∈ K₀ L₀ t := by
     intro r hr i
     by_cases h0 : r.coeff i = 0
     · rw [h0]; exact zero_mem _

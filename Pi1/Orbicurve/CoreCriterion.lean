@@ -137,7 +137,8 @@ variable {Ω : Type u} [Field Ω] [Algebra k Ω] {t : Ω} (ht : Transcendental k
 include ht in
 /-- The coordinate ring of the `t`-line itself is `k[t]`. -/
 lemma bijective_algebraMap_coordRing_bot :
-    Function.Bijective (algebraMap (A₀ k t) (coordRing k t (⊥ : IntermediateField (K₀ k t) Ω))) := by
+    Function.Bijective
+      (algebraMap (A₀ k t) (coordRing k t (⊥ : IntermediateField (K₀ k t) Ω))) := by
   refine ⟨fun a b h => Subtype.ext (congrArg (fun c : coordRing k t (⊥ : IntermediateField
     (K₀ k t) Ω) => ((c : (⊥ : IntermediateField (K₀ k t) Ω)) : Ω)) h), fun b => ?_⟩
   have hb : ((b : (⊥ : IntermediateField (K₀ k t) Ω)) : Ω) ∈

@@ -63,6 +63,7 @@ lemma mem_A₀_of_mem_K₀ (htK : Transcendental K t) {z : Ω} (hz : z ∈ K₀ 
   rw [← hR, hRD, aeval_map_algebraMap]
   exact Polynomial.aeval_mem_adjoin_singleton k t
 
+set_option linter.unusedSectionVars false in
 lemma isIntegral_of_roots {R : Subalgebra (A₀ K t) Ω} {p : (K₀ k t)[X]} (hm : p.Monic)
     (hs : (p.map (algebraMap (K₀ k t) Ω)).Splits)
     (hr : ∀ r ∈ p.rootSet Ω, r ∈ R) (i : ℕ) : ((p.coeff i : K₀ k t) : Ω) ∈ R := by
