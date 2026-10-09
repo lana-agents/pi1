@@ -17,6 +17,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: leanprover/lean-action@v1
+        with:
+          # Fail the build on any warning (owner decision 2026-10-09).
+          build-args: "--wfail"
 
       #- name: Cache documentation
       #  uses: actions/cache@v4
