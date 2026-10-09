@@ -1,0 +1,168 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/main/schema/formalization.schema.json
+# formalization.yaml (v0.4): repo-root metadata for this formalization,
+# following https://github.com/mathlib-initiative/formalization.yaml
+
+version: "v0.4"
+
+project:
+  name: "pi1"
+  description: >-
+    A Lean 4 / Mathlib formalization of the étale fundamental group of a connected scheme: the
+    category of schemes finite étale over a connected scheme X is a Galois category, and taking
+    geometric fibres is a fibre functor, so π₁ᵉᵗ is a profinite group whose finite sets classify
+    finite étale covers (upstream chrisflav/pi1). The lana-agents fork adds π₁ᵉᵗ(Spec k) ≃ Gal(K/k),
+    the étale fundamental group of an affine orbifold [Spec R / A] with its profinite topology and
+    its comparison with Mathlib's fibre-functor automorphism group, SGA 1 V.8.2 with a finite group
+    action (the orbifold π₁ as a Galois group modulo inertia), smoothness of Dedekind domains of
+    finite type over a perfect field, and affine orbicurves with their finite étale morphisms,
+    cores, inertia and ramification, including a Lefschetz-principle reduction of the statement
+    CanLift27 (Mochizuki, Prop. 2.7 of "The absolute anabelian geometry of canonical curves") to
+    the complex numbers. CanLift27 itself is a statement only.
+  authors:
+    - "Claude (Anthropic)"
+    - "Christian Merten"
+    - "LANA Project"
+  responsible_maintainers:
+    - "Christian Merten"
+  license: "Apache-2.0"
+
+sources:
+  - title: "Revêtements étales et groupe fondamental (SGA 1), Exposé V"
+    authors: ["Alexander Grothendieck", "Michèle Raynaud"]
+    id: "arXiv:math/0206203"
+    type: "book"
+    location: "Exposé V (Galois categories, the fundamental group), in particular V.8.2"
+    relationship: "adapts"
+    note: >-
+      The Galois category of finite étale schemes and the fibre functor follow the classical
+      theory; the orbifold comparison is SGA 1 V.8.2 with a finite group action.
+    author_endorsement: "n/a"
+  - title: "The absolute anabelian geometry of canonical curves"
+    authors: ["Shinichi Mochizuki"]
+    type: "article"
+    location: "Documenta Math. Extra Volume Kato (2003), 609-640; §2, Definition 2.1 and Proposition 2.7"
+    relationship: "background"
+    note: >-
+      Affine orbicurves, k-cores and the statements CanLift27 / CanLift27Arith of Prop. 2.7 are
+      formalized as definitions and statements; Prop. 2.7 itself is not proved here.
+    author_endorsement: "not-contacted"
+
+related_formalizations:
+  - id: "https://github.com/chrisflav/pi1"
+    relationship: "builds-on"
+    note: "Upstream repository of this fork."
+  - id: "https://github.com/lana-agents/tempered-fundamental-groups"
+    relationship: "other"
+    note: "Downstream consumer of the étale fundamental group of affine orbifolds."
+  - id: "https://github.com/lana-agents/oka"
+    relationship: "other"
+    note: "Downstream consumer: the algebraic side of the π₁ comparison theorem."
+  - id: "https://github.com/lana-agents/iut"
+    relationship: "other"
+    note: "Downstream consumer."
+
+classification:
+  arxiv: ["math.AG"]
+  msc2020: ["14F35", "14H30", "18F10"]
+
+status:
+  scope: >-
+    The étale fundamental group of a connected scheme via Galois categories, π₁ᵉᵗ(Spec k), the
+    étale fundamental group of affine orbifolds and its Galois-theoretic description (SGA 1
+    V.8.2), smoothness of Dedekind domains of finite type over a perfect field, and affine
+    orbicurves with cores and ramification, proved from Lean's three standard axioms. The
+    statements CanLift27 and CanLift27Arith are definitions (propositions), not theorems; only
+    their reduction to ℂ is proved.
+  sorry_count: 0
+  sorry_in_definitions: 0
+  axioms: ["propext", "Classical.choice", "Quot.sound"]
+  main_results:
+    - declaration: "AlgebraicGeometry.FiniteEtale.galoisCategory"
+      file: "Pi1/FundamentalGroup/Galois.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "AlgebraicGeometry.FiniteEtale.isFundamentalGroup"
+      file: "Pi1/FundamentalGroup/Point.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "Pi1.Orbifold.GaloisData.equivPi1"
+      file: "Pi1/Orbifold/Comparison.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "Pi1.Orbifold.etalePi1EquivAutFiber"
+      file: "Pi1/Orbifold/EtaleMathlib.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "Algebra.smooth_of_isDedekindDomain"
+      file: "Pi1/RingTheory/Smooth/Dedekind.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "AffOrbicurve.canLift27_of_complex"
+      file: "Pi1/Orbicurve/LefschetzMain.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "AffOrbicurve.etale_iff_inertia"
+      file: "Pi1/Orbicurve/EtaleInertia.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+
+automation:
+  methods:
+    - method: "manual"
+      prompting_notes: >-
+        The upstream repository chrisflav/pi1 (the Galois category of finite étale schemes and
+        the fibre functor) was written by Christian Merten; its commits carry no agent trailers.
+    - method: "agent"
+      models: ["claude-opus-5-5"]
+      framework: "Claude Code"
+      tool_setup: >-
+        orchestra for running the agents, taxis for project management, and Claude (Claude Code) as the
+        coding agent; Lean/Lake builds with `lake build --wfail`.
+      prompting_notes: >-
+        The additions of the lana-agents fork were made by Claude. Human input consisted of
+        high-level task descriptions and scope decisions.
+  notes: >-
+    Agents were run with orchestra; project management (issues, status) was done in taxis;
+    Claude was the coding agent for the fork's additions.
+
+fidelity:
+  divergences: >-
+    The étale fundamental group is defined as the automorphism group of the fibre functor on the
+    Galois category of finite étale schemes. The orbifold fundamental group of [Spec R / A] is
+    defined as the automorphism group of the fibre functor on A-equivariant finite étale
+    R-algebras, with coded algebras to stay in one universe. CanLift27 is stated for affine
+    orbicurves given by a coarse Dedekind ring and stabilizer orders, and is only reduced to ℂ.
+
+review:
+  status: "agent-reviewed"
+  reviewers: ["Claude (Anthropic)"]
+  notes: >-
+    The formalization has only been reviewed by Claude; it has not been reviewed by a human.
+    All results are machine-checked by the Lean kernel (axioms as listed under status; checked
+    with `#print axioms` on a build of this revision).
+
+alignment:
+  namespace: "AlgebraicGeometry.FiniteEtale"
+  statements:
+    - source: "SGA 1, Exposé V, §4-§7: finite étale covers of a connected scheme form a Galois category"
+      lean: "AlgebraicGeometry.FiniteEtale.galoisCategory"
+      module: "Pi1/FundamentalGroup/Galois.lean"
+      status: "proved"
+    - source: "SGA 1, Exposé V, 8.2 (with a finite group action)"
+      lean: "Pi1.Orbifold.GaloisData.equivPi1"
+      module: "Pi1/Orbifold/Comparison.lean"
+      status: "proved"
+    - source: "Mochizuki, The absolute anabelian geometry of canonical curves, Proposition 2.7"
+      lean: "AffOrbicurve.CanLift27"
+      module: "Pi1/Orbicurve/Elliptic.lean"
+      status: "stated"
+      note: "Statement only; AffOrbicurve.canLift27_of_complex reduces it to ℂ."
+
+acknowledgements: "Built on Mathlib (Apache-2.0)."

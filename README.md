@@ -71,3 +71,5 @@ listed is proved without `sorry`.
 * Cores: pullbacks of finite étale covers (`AffOrbicurve.pullback_ofSubfield`), a criterion for
   cores (`AffOrbicurve.isCoreOf_of_subsingleton`), and invariance of ramification indices under
   extension of the constant field (`AffOrbicurve.ramificationIdx_bc`).
+
+License: Apache 2.0 (see `LICENSE`).
