@@ -50,10 +50,12 @@ public import Pi1.Orbifold.GaloisAction
 public import Pi1.Orbifold.GaloisData
 public import Pi1.Orbifold.Induced
 public import Pi1.Orbifold.Level
+public import Pi1.Orbifold.Smooth
 public import Pi1.RingTheory.FiniteEtale.Basic
 public import Pi1.RingTheory.FiniteEtale.Descent
 public import Pi1.RingTheory.FiniteEtale.Equalizer
 public import Pi1.RingTheory.KerTensor
+public import Pi1.RingTheory.Smooth.Dedekind
 public import Pi1.RingTheory.Smooth.StandardSmoothSmooth
 public import Pi1.RingTheory.Transcendence
 public import Pi1.RingTheory.UnramifiedValuation
