@@ -114,9 +114,9 @@ noncomputable def multTY (v : Ideal (coordRing F t (⊥ : IntermediateField (K�
 variable [CharZero F] [FiniteDimensional (K₀ F t) (fnTY F t y)]
   [Algebra.IsSeparable (K₀ F t) (fnTY F t y)] (ht : Transcendental F t)
 
+omit [CharZero F] in
 include ht in
 set_option synthInstance.maxHeartbeats 400000 in
-set_option linter.unusedSectionVars false in
 lemma multTY_pos (v : Ideal (coordRing F t (⊥ : IntermediateField (K₀ F t) Ω)))
     (hv : v.IsMaximal) : 0 < multTY F t y v := by
   have hle : (⊥ : IntermediateField (K₀ F t) Ω) ≤ fnTY F t y := bot_le
@@ -140,8 +140,8 @@ lemma multTY_pos (v : Ideal (coordRing F t (⊥ : IntermediateField (K₀ F t) �
   have := hex.choose_spec.1
   exact Ideal.ramificationIdx_pos _ _
 
+omit [Algebra.IsSeparable (K₀ F t) (fnTY F t y)] in
 include ht in
-set_option linter.unusedSectionVars false in
 lemma multTY_finite :
     {v : Ideal (coordRing F t (⊥ : IntermediateField (K₀ F t) Ω)) |
       v.IsMaximal ∧ multTY F t y v ≠ 1}.Finite :=
@@ -154,10 +154,10 @@ noncomputable def hemiTY : AffOrbicurve F :=
 
 variable [IsAlgClosed Ω] [Normal (K₀ F t) (fnTY F t y)]
 
+omit [Algebra.IsSeparable (K₀ F t) (fnTY F t y)] in
 include ht in
 set_option maxHeartbeats 1000000 in
 set_option synthInstance.maxHeartbeats 400000 in
-set_option linter.unusedSectionVars false in
 /-- All primes over a given prime of `F[t]` have the same ramification index (`F(t)(y) / F(t)`
 is Galois). -/
 lemma multTY_eq (w : Ideal (coordRing F t (fnTY F t y))) [hw : w.IsMaximal] :
@@ -177,7 +177,7 @@ lemma multTY_eq (w : Ideal (coordRing F t (fnTY F t y))) [hw : w.IsMaximal] :
   rw [Ideal.ramificationIdxIn, dif_pos hex]
   obtain ⟨hP, hPl⟩ := hex.choose_spec
   haveI : hex.choose.IsMaximal := Ideal.IsMaximal.of_liesOver_isMaximal hex.choose v
-  obtain ⟨N, -, hAN, _, _, -, -, -, -⟩ := exists_galois_bc (K := F) ht (fnTY F t y)
+  obtain ⟨N, -, hAN, _, _, -, -, -, -⟩ := exists_galois_bc (K := F) (fnTY F t y)
   refine ramificationIdx_eq_of_normal t ht hle hAN ?_ w hex.choose hPl.over
   intro σ hσ τ hτ x hx
   have h1 : ((σ⁻¹ x : N) : Ω) ∈ fnTY F t y := mem_of_aut (K := F) (σ⁻¹) x hx
@@ -195,7 +195,7 @@ noncomputable def homTY :
 section BC
 
 variable {k K : Type u} [Field k] [Field K] [Algebra k K] [Algebra K Ω] [Algebra k Ω]
-  [IsScalarTower k K Ω] [IsAlgClosed Ω] [CharZero k] {t : Ω} (y : Ω) (htK : Transcendental K t)
+  [IsScalarTower k K Ω] [CharZero k] {t : Ω} (y : Ω) (htK : Transcendental K t)
   [FiniteDimensional (K₀ k t) (fnTY k t y)] [Algebra.IsSeparable (K₀ k t) (fnTY k t y)]
   [Normal (K₀ k t) (fnTY k t y)]
   [FiniteDimensional (K₀ K t) (fnTY K t y)] [Algebra.IsSeparable (K₀ K t) (fnTY K t y)]
@@ -213,11 +213,10 @@ lemma fnTY_mem_bc : ∀ x ∈ fnTY k t y, x ∈ fnTY K t y := by
   rw [hrq, aeval_def, aeval_def, aeval_def, aeval_def, eval₂_map, eval₂_map]
   rfl
 
+omit [Algebra.IsSeparable (K₀ k t) (fnTY k t y)] [Algebra.IsSeparable (K₀ K t) (fnTY K t y)] in
 include htK in
 set_option maxHeartbeats 1000000 in
 set_option synthInstance.maxHeartbeats 400000 in
-set_option linter.unusedSectionVars false in
-set_option linter.overlappingInstances false in
 /-- **The stabilizer orders of the quotient orbicurve under base change.** -/
 lemma multTY_bc (v' : Ideal (coordRing K t (⊥ : IntermediateField (K₀ K t) Ω)))
     [hv' : v'.IsMaximal] :

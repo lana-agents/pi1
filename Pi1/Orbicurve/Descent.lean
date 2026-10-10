@@ -68,7 +68,7 @@ lemma mem_A₀_of_mem_K₀ (htK : Transcendental K t) {z : Ω} (hz : z ∈ K₀ 
   rw [← hR, hRD, aeval_map_algebraMap]
   exact Polynomial.aeval_mem_adjoin_singleton k t
 
-set_option linter.unusedSectionVars false in
+omit [Algebra k K] [IsScalarTower k K Ω] in
 lemma isIntegral_of_roots {R : Subalgebra (A₀ K t) Ω} {p : (K₀ k t)[X]} (hm : p.Monic)
     (hs : (p.map (algebraMap (K₀ k t) Ω)).Splits)
     (hr : ∀ r ∈ p.rootSet Ω, r ∈ R) (i : ℕ) : ((p.coeff i : K₀ k t) : Ω) ∈ R := by
@@ -105,7 +105,7 @@ theorem isIntegral_A₀_of_bc [IsAlgClosed k] (htK : Transcendental K t) {x : Ω
   haveI : CharZero K := charZero_of_injective_algebraMap (algebraMap k K).injective
   let F : IntermediateField (K₀ k t) Ω := IntermediateField.adjoin (K₀ k t) {x}
   haveI : FiniteDimensional (K₀ k t) F := IntermediateField.adjoin.finiteDimensional hxa
-  obtain ⟨N, N', hFN, _, _, _, _, hNN', -⟩ := exists_galois_bc htK F
+  obtain ⟨N, N', hFN, _, _, _, _, hNN', -⟩ := exists_galois_bc (K := K) F
   have hxN : x ∈ N := hFN (IntermediateField.mem_adjoin_simple_self _ x)
   set p := minpoly (K₀ k t) x
   have hm : p.Monic := minpoly.monic hxa

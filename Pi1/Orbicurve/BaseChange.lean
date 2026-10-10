@@ -148,7 +148,6 @@ lemma le_ramificationIdx'_of_le_pow {R S : Type*} [CommRing R] [CommRing S] [Alg
     Multiset.nsmul_singleton, ← Multiset.le_count_iff_replicate_le] at hdvd
   exact hdvd
 
-set_option linter.unusedVariables false in
 /-- **Ramification indices do not drop under an unramified extension of the base**: for a
 commutative square `R → S`, `R' → S'` (`α : R → R'`, `β : S → S'`) of extensions of Dedekind
 domains, `R'` principal, a nonzero prime `u'` of `S'` with `u = β⁻¹(u') ≠ 0`, if some element of
@@ -157,7 +156,7 @@ lemma ramificationIdx_le_of_square {R S R' S' : Type*} [CommRing R] [CommRing S]
     [CommRing S'] [IsDomain R] [IsDomain R'] [IsDedekindDomain S] [IsDedekindDomain S']
     [IsPrincipalIdealRing R'] [Algebra R S] [Algebra R' S'] [Module.IsTorsionFree R S]
     [Module.IsTorsionFree R' S'] [Algebra.IsIntegral R S]
-    (α : R →+* R') (β : S →+* S') (hβ : Function.Injective β)
+    (α : R →+* R') (β : S →+* S')
     (hcomm : ∀ r, β (algebraMap R S r) = algebraMap R' S' (α r))
     (u' : Ideal S') [hu' : u'.IsPrime] (hu : u'.comap β ≠ ⊥)
     (hsq : ∃ a ∈ (u'.comap β).under R, α a ∉ (u'.under R') ^ 2) :
@@ -243,12 +242,11 @@ lemma bcMap_coordRingBotEquiv (htk : Transcendental k t) (htK : Transcendental K
   apply Subtype.ext; apply Subtype.ext
   rw [coe_bcMap, coe_coordRingBotEquiv, coe_coordRingBotEquiv, Polynomial.aeval_map_algebraMap]
 
-set_option linter.unusedVariables false in
 /-- **`k[t] → K[t]` is unramified** (characteristic `0`): for a nonzero prime `v'` of `K[t]` over
 the nonzero prime `v` of `k[t]`, some element of `v` is not in `v'²`. -/
 lemma exists_mem_not_mem_sq [CharZero k] (htk : Transcendental k t) (htK : Transcendental K t)
     (v' : Ideal (coordRing K t (⊥ : IntermediateField (K₀ K t) Ω))) [hv' : v'.IsPrime]
-    (hv'0 : v' ≠ ⊥) (hv0 : v'.comap (bcMap (bot_mem_bc (k := k) (K := K) (t := t))) ≠ ⊥) :
+    (hv0 : v'.comap (bcMap (bot_mem_bc (k := k) (K := K) (t := t))) ≠ ⊥) :
     ∃ a ∈ v'.comap (bcMap (bot_mem_bc (k := k) (K := K) (t := t))),
       bcMap (bot_mem_bc (k := k) (K := K) (t := t)) a ∉ v' ^ 2 := by
   classical
@@ -372,8 +370,8 @@ noncomputable def res : (N' ≃ₐ[K₀ K t] N') →* (N ≃ₐ[K₀ k t] N) whe
 @[simp] lemma coe_res_apply (σ' : N' ≃ₐ[K₀ K t] N') (x : N) :
     ((res hN σ' x : N) : Ω) = ((σ' ⟨x, hN x x.2⟩ : N') : Ω) := rfl
 
+omit [Algebra k K] [IsScalarTower k K Ω] [Normal (K₀ k t) N] in
 include hN in
-set_option linter.unusedSectionVars false in
 /-- An automorphism of `N' = K(t) · N` fixing `N` is trivial. -/
 lemma eq_of_fix (hN' : N' ≤ IntermediateField.adjoin (K₀ K t) (N : Set Ω))
     (σ' : N' ≃ₐ[K₀ K t] N') (h : ∀ x : N', (x : Ω) ∈ N → σ' x = x) : σ' = 1 := by
@@ -417,11 +415,12 @@ section Inertia
 variable {t} {N : IntermediateField (K₀ k t) Ω} {N' : IntermediateField (K₀ K t) Ω}
   (hN : ∀ x ∈ N, x ∈ N') [Normal (K₀ k t) N] [FiniteDimensional (K₀ k t) N]
 
+omit [FiniteDimensional (K₀ k t) N] in
 set_option synthInstance.maxHeartbeats 400000 in
-set_option linter.unusedSectionVars false in
 lemma bcMap_smul (σ' : N' ≃ₐ[K₀ K t] N') (x : coordRing k t N) :
     bcMap hN (res hN σ' • x) = σ' • bcMap hN x := rfl
 
+omit [FiniteDimensional (K₀ k t) N] in
 set_option synthInstance.maxHeartbeats 400000 in
 /-- **Restriction maps inertia groups to inertia groups.** -/
 lemma res_mem_inertia (u' : Ideal (coordRing K t N')) (σ' : N' ≃ₐ[K₀ K t] N')
@@ -488,7 +487,7 @@ lemma card_inertia_le (u' : Ideal (coordRing K t N')) [hu' : u'.IsMaximal]
   haveI : Algebra.IsIntegral (coordRing k t (⊥ : IntermediateField (K₀ k t) Ω))
       (coordRing k t N) := ⟨ringMap_isIntegral t _⟩
   refine ramificationIdx_le_of_square (bcMap (bot_mem_bc (k := k) (K := K) (t := t)))
-    (bcMap hN) (bcMap_injective hN) (fun _ => rfl) u' hu ?_
+    (bcMap hN) (fun _ => rfl) u' hu ?_
   set v' := u'.under (coordRing K t (⊥ : IntermediateField (K₀ K t) Ω))
   haveI : v'.IsPrime := Ideal.comap_isPrime _ _
   have hcomap : u.under (coordRing k t (⊥ : IntermediateField (K₀ k t) Ω)) =
@@ -497,16 +496,8 @@ lemma card_inertia_le (u' : Ideal (coordRing K t N')) [hu' : u'.IsMaximal]
     rw [← hcomap]
     obtain ⟨x, hx, hx0⟩ := Submodule.exists_mem_ne_zero_of_ne_bot hu
     exact Ideal.comap_ne_bot_of_integral_mem hx0 hx (Algebra.IsIntegral.isIntegral x)
-  have hv'0 : v' ≠ ⊥ := by
-    intro h
-    apply hv0
-    rw [h, eq_bot_iff]
-    intro x hx
-    rw [Ideal.mem_comap, Ideal.mem_bot] at hx
-    rw [Ideal.mem_bot]
-    exact bcMap_injective _ (hx.trans (map_zero _).symm)
   rw [hcomap]
-  exact exists_mem_not_mem_sq htk htK v' hv'0 hv0
+  exact exists_mem_not_mem_sq htk htK v' hv0
 
 omit [Normal (K₀ k t) N] [FiniteDimensional (K₀ k t) N] [CharZero k] [IsGalois (K₀ k t) N]
   [FiniteDimensional (K₀ K t) N'] [IsGalois (K₀ K t) N'] in
@@ -733,7 +724,7 @@ section Closure
 
 variable {t} [IsAlgClosed Ω] [CharZero k]
 
-set_option linter.unusedSectionVars false in
+omit [IsAlgClosed Ω] [CharZero k] in
 lemma rootSet_map_K₀Map (p : (K₀ k t)[X]) :
     (p.map (K₀Map (K := K) t)).rootSet Ω = p.rootSet Ω := by
   classical
@@ -741,11 +732,10 @@ lemma rootSet_map_K₀Map (p : (K₀ k t)[X]) :
     Polynomial.aroots_def, Polynomial.map_map]
   rfl
 
-set_option linter.unusedVariables false in
 /-- **Galois closures and their base changes**: every finite extension `F` of `k(t)` in `Ω` lies in
 a finite Galois extension `N` of `k(t)` whose compositum `N' = K(t) · N` is finite Galois over
 `K(t)`. -/
-theorem exists_galois_bc (htK : Transcendental K t) (F : IntermediateField (K₀ k t) Ω)
+theorem exists_galois_bc (F : IntermediateField (K₀ k t) Ω)
     [FiniteDimensional (K₀ k t) F] :
     ∃ (N : IntermediateField (K₀ k t) Ω) (N' : IntermediateField (K₀ K t) Ω),
       F ≤ N ∧ FiniteDimensional (K₀ k t) N ∧ IsGalois (K₀ k t) N ∧
@@ -826,7 +816,7 @@ theorem ramificationIdx_bc (htK : Transcendental K t)
         (letI := algRing t h; (w'.comap (bcMap h₂)).ramificationIdx (coordRing k t F₁))) := by
   have htk : Transcendental k t := transcendental_of_bc (K := K) htK
   haveI : CharZero K := charZero_of_injective_algebraMap (algebraMap k K).injective
-  obtain ⟨N, N', hF₂N, _, _, _, _, hNN', hN'⟩ := exists_galois_bc htK F₂
+  obtain ⟨N, N', hF₂N, _, _, _, _, hNN', hN'⟩ := exists_galois_bc (K := K) F₂
   have hF₂'N' : F₂' ≤ N' := by
     rw [hN']
     exact h₂'.trans (IntermediateField.adjoin.mono _ _ _ hF₂N)
@@ -896,8 +886,7 @@ theorem ramificationIdx_bc (htK : Transcendental K t)
         Nat.card_pos
       exact Nat.eq_of_mul_eq_mul_right hpos hmc'
 
-omit [IsAlgClosed Ω] in
-set_option linter.unusedSectionVars false in
+omit [IsAlgClosed Ω] [CharZero k] in
 /-- **Restriction is surjective** when `k` is algebraically closed (`K(t) ∩ N = k(t)`). -/
 theorem res_surjective [IsAlgClosed k] (htK : Transcendental K t)
     {N : IntermediateField (K₀ k t) Ω} {N' : IntermediateField (K₀ K t) Ω}
@@ -941,7 +930,7 @@ theorem exists_comap_bc_eq [IsAlgClosed k] (htK : Transcendental K t)
   classical
   have htk : Transcendental k t := transcendental_of_bc (K := K) htK
   haveI : CharZero K := charZero_of_injective_algebraMap (algebraMap k K).injective
-  obtain ⟨N, N', hFN, _, _, _, _, hNN', hN'⟩ := exists_galois_bc htK F
+  obtain ⟨N, N', hFN, _, _, _, _, hNN', hN'⟩ := exists_galois_bc (K := K) F
   have hF'N' : F' ≤ N' := by
     rw [hN']
     exact hF'.trans (IntermediateField.adjoin.mono _ _ _ hFN)

@@ -429,8 +429,7 @@ variable {ξ} in
 def fiberPt {A : FiniteEtale X} (x : (fiber ξ).obj A) : A.left :=
   (pullback.fst A.hom ξ).base x
 
-set_option linter.overlappingInstances false in
-instance [IsSepClosed Ω] : PreservesFiniteLimits (pullback ξ) := by
+instance : PreservesFiniteLimits (pullback ξ) := by
   dsimp [pullback]
   apply AffineAnd.preservesFiniteLimits_pullback
 
@@ -582,22 +581,19 @@ instance {Y : Scheme.{u}} [Nonempty Y] (g : Y ⟶ X) [ConnectedSpace X] :
     apply IsFiniteEtale.isIso_of_isIso_snd' f.left (pullback.fst B.hom g)
   apply isIso_of_isIso_left
 
-set_option linter.overlappingInstances false in
-instance [ConnectedSpace X] [IsSepClosed Ω] : (fiber ξ).ReflectsIsomorphisms := by
+instance [ConnectedSpace X] : (fiber ξ).ReflectsIsomorphisms := by
   dsimp [fiber]
   infer_instance
 
-set_option linter.overlappingInstances false in
-instance [IsSepClosed Ω] : PreservesFiniteColimits (fiber ξ) := by
+instance : PreservesFiniteColimits (fiber ξ) := by
   dsimp [fiber]
   apply Limits.comp_preservesFiniteColimits
 
 open PreGaloisCategory
 
-set_option linter.overlappingInstances false in
 /-- If `X` is a connected scheme and `ξ : Spec Ω ⟶ X` is a geometric point,
 taking fibers over `ξ` is a fiber functor. -/
-instance fiberFunctor [ConnectedSpace X] [IsSepClosed Ω] : FiberFunctor (fiber ξ) where
+instance fiberFunctor [ConnectedSpace X] : FiberFunctor (fiber ξ) where
   preservesTerminalObjects := by dsimp [fiber]; infer_instance
   preservesPullbacks := by dsimp [fiber]; infer_instance
   preservesQuotientsByFiniteGroups _ _ := inferInstance

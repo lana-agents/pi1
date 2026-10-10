@@ -32,13 +32,13 @@ open Ideal IsLocalRing
 
 namespace TameInertia
 
-variable {B : Type*} [CommRing B] [IsDedekindDomain B]
-  {G : Type*} [Group G] [Finite G] [MulSemiringAction G B]
+variable {B : Type*} [CommRing B]
+  {G : Type*} [Group G] [MulSemiringAction G B]
   (u : Ideal B) [hu : u.IsMaximal] (hu0 : u ≠ ⊥)
 
 local notation "R" => Localization.AtPrime u
 
-set_option linter.unusedSectionVars false in
+omit hu in
 lemma comap_eq_of_mem_inertia {σ : G} (hσ : σ ∈ u.inertia G) :
     u = u.comap (MulSemiringAction.toRingHom G B σ) := by
   ext x
@@ -92,10 +92,6 @@ lemma loc_sub_mem {σ : G} (hσ : σ ∈ u.inertia G) (r : R) :
   rw [this]
   exact u.sub_mem (u.mul_mem_right _ h1) (u.mul_mem_left _ h2)
 
-include hu0 in
-lemma isDVR : IsDiscreteValuationRing R :=
-  IsLocalization.AtPrime.isDiscreteValuationRing_of_dedekind_domain B hu0 R
-
 /-- The inverse of an inertia element acts as the inverse of `loc`. -/
 lemma loc_inv_comp {σ : G} (hσ : σ ∈ u.inertia G) :
     (loc u ((u.inertia G).inv_mem hσ)).comp (loc u hσ) = RingHom.id R := by
@@ -113,6 +109,26 @@ lemma loc_comp_inv {σ : G} (hσ : σ ∈ u.inertia G) :
 noncomputable def locEquiv {σ : G} (hσ : σ ∈ u.inertia G) : R ≃+* R :=
   RingEquiv.ofRingHom (loc u hσ) (loc u ((u.inertia G).inv_mem hσ)) (loc_comp_inv u hσ)
     (loc_inv_comp u hσ)
+
+lemma loc_pow {σ : G} (hσ : σ ∈ u.inertia G) (n : ℕ) (x : R) :
+    loc u (Subgroup.pow_mem _ hσ n) x = (loc u hσ)^[n] x := by
+  induction n generalizing x with
+  | zero =>
+    simp only [pow_zero, Function.iterate_zero, id_eq]
+    rw [loc_one u]; rfl
+  | succ n ih =>
+    have : loc u (Subgroup.pow_mem _ hσ (n + 1)) =
+        (loc u hσ).comp (loc u (Subgroup.pow_mem _ hσ n)) := by
+      rw [← loc_mul u hσ (Subgroup.pow_mem _ hσ n)]
+      congr 1
+      rw [pow_succ']
+    rw [this, RingHom.comp_apply, ih, ← Function.iterate_succ_apply' (loc u hσ) n x]
+
+variable [IsDedekindDomain B]
+
+include hu0 in
+lemma isDVR : IsDiscreteValuationRing R :=
+  IsLocalization.AtPrime.isDiscreteValuationRing_of_dedekind_domain B hu0 R
 
 section Uniformizer
 
@@ -168,19 +184,7 @@ noncomputable def tameChar {π : R} (hπ : Irreducible π) : u.inertia G →* (R
     rw [← sub_eq_zero, ← map_sub, residue_eq_zero_iff]
     exact loc_sub_mem u σ.2 _
 
-lemma loc_pow {σ : G} (hσ : σ ∈ u.inertia G) (n : ℕ) (x : R) :
-    loc u (Subgroup.pow_mem _ hσ n) x = (loc u hσ)^[n] x := by
-  induction n generalizing x with
-  | zero =>
-    simp only [pow_zero, Function.iterate_zero, id_eq]
-    rw [loc_one u]; rfl
-  | succ n ih =>
-    have : loc u (Subgroup.pow_mem _ hσ (n + 1)) =
-        (loc u hσ).comp (loc u (Subgroup.pow_mem _ hσ n)) := by
-      rw [← loc_mul u hσ (Subgroup.pow_mem _ hσ n)]
-      congr 1
-      rw [pow_succ']
-    rw [this, RingHom.comp_apply, ih, ← Function.iterate_succ_apply' (loc u hσ) n x]
+variable [Finite G]
 
 include hu0 in
 /-- **Injectivity of the tame character** (residue characteristic `0`). -/
@@ -322,6 +326,8 @@ theorem tameChar_injective [CharZero (ResidueField R)] [FaithfulSMul G B] {π : 
   exact this
 
 end Uniformizer
+
+variable [Finite G]
 
 include hu0 in
 /-- **Tame inertia is cyclic**: if the residue field at `u` has characteristic `0` and `G` acts

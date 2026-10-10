@@ -135,7 +135,6 @@ section
 
 variable {P Q : MorphismProperty Scheme.{u}} [Q.IsMultiplicative] [P.IsStableUnderBaseChange]
   [Q.IsStableUnderBaseChange] [P.IsMultiplicative]
-  [Q.IsStableUnderComposition]
 variable {S : Scheme.{u}} {J : Type t} [Category J] (D : J ⥤ P.Over ⊤ S)
   {𝒰 : Scheme.OpenCover.{w} S} [Small.{u} 𝒰.I₀] [Category 𝒰.I₀] [Quiver.IsThin 𝒰.I₀]
   [𝒰.LocallyDirected]
@@ -152,7 +151,6 @@ lemma Scheme.Cover.ColimitGluingData.pullbackGluedIso_hom (i : 𝒰.I₀) :
       pullback.fst _ _ := by
   simp [pullbackGluedIso, glued]
 
-set_option linter.overlappingInstances false in
 def Scheme.Cover.ColimitGluingData.mapCoconePullback (i : 𝒰.I₀) :
     (MorphismProperty.Over.pullback P ⊤ (𝒰.f i)).mapCocone
       d.gluedCocone ≅ d.cocone i := by
@@ -358,8 +356,7 @@ end
 
 variable {J : Type t} [Category J] [UnivLE.{t, u}]
 
-set_option linter.overlappingInstances false in
-instance [IsAffine S] : HasLimitsOfShape J (Affine S)ᵒᵖ :=
+instance : HasLimitsOfShape J (Affine S)ᵒᵖ :=
   Adjunction.hasLimitsOfShape_of_equivalence (Γ S)
 
 instance hasColimitsOfShape_of_isAffine : HasColimitsOfShape J (Affine S) :=

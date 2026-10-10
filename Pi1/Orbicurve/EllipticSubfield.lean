@@ -194,7 +194,7 @@ noncomputable def puncturedEquiv : puncturedRing E ≃+* coordRing k (tE j) (fnF
       rw [coe_funEquiv, j_algebraMap_poly]
       exact (coe_algEquivOfTranscendental (transcendental_tE j) p).symm)
 
-set_option linter.unusedSectionVars false in
+omit [CharZero k] [E.IsElliptic] in
 @[simp] lemma coe_puncturedEquiv (a : puncturedRing E) :
     (((puncturedEquiv j a : coordRing k (tE j) (fnFieldE j)) : fnFieldE j) : Ω) =
       j (a : E.toAffine.FunctionField) := rfl
@@ -275,8 +275,7 @@ instance normal_fnFieldE : Normal (K₀ k (tE j)) (fnFieldE j) := by
   rw [heq] at hs
   exact Normal.of_isSplittingField Q
 
-omit [IsAlgClosed Ω] in
-set_option linter.unusedSectionVars false in
+omit [IsAlgClosed Ω] [CharZero k] [E.IsElliptic] in
 lemma bot_le_fnFieldE : (⊥ : IntermediateField (K₀ k (tE j)) Ω) ≤ fnFieldE j := bot_le
 
 /-- **The stabilizer orders of `(E ∖ {0}) / {±1}`**: the ramification indices of `k(E) / k(t)`. -/
@@ -285,6 +284,7 @@ noncomputable def multE (v : Ideal (coordRing k (tE j) (⊥ : IntermediateField 
   letI := algRing (tE j) (bot_le_fnFieldE j)
   v.ramificationIdxIn (coordRing k (tE j) (fnFieldE j))
 
+omit [E.IsElliptic] in
 set_option maxHeartbeats 1000000 in
 set_option synthInstance.maxHeartbeats 400000 in
 /-- All primes over a given prime of `k[t]` have the same ramification index (`k(E) / k(t)` is
@@ -305,7 +305,7 @@ lemma multE_eq (w : Ideal (coordRing k (tE j) (fnFieldE j))) [hw : w.IsMaximal] 
   rw [Ideal.ramificationIdxIn, dif_pos hex]
   obtain ⟨hP, hPl⟩ := hex.choose_spec
   haveI : hex.choose.IsMaximal := Ideal.IsMaximal.of_liesOver_isMaximal hex.choose v
-  obtain ⟨N, -, hAN, _, _, -, -, -, -⟩ := exists_galois_bc (K := k) ht (fnFieldE j)
+  obtain ⟨N, -, hAN, _, _, -, -, -, -⟩ := exists_galois_bc (K := k) (fnFieldE j)
   refine ramificationIdx_eq_of_normal (tE j) ht (bot_le_fnFieldE j) hAN ?_ w hex.choose hPl.over
   intro σ hσ τ hτ x hx
   have h1 : ((σ⁻¹ x : N) : Ω) ∈ fnFieldE j := mem_of_aut (K := k) (σ⁻¹) x hx
@@ -313,8 +313,8 @@ lemma multE_eq (w : Ideal (coordRing k (tE j) (fnFieldE j))) [hw : w.IsMaximal] 
   rw [AlgEquiv.mul_apply, AlgEquiv.mul_apply, h2]
   exact σ.apply_symm_apply x
 
+omit [IsAlgClosed Ω] [E.IsElliptic] in
 set_option synthInstance.maxHeartbeats 400000 in
-set_option linter.unusedSectionVars false in
 lemma multE_pos (v : Ideal (coordRing k (tE j) (⊥ : IntermediateField (K₀ k (tE j)) Ω)))
     (hv : v.IsMaximal) : 0 < multE j v := by
   have ht := transcendental_tE j
@@ -338,7 +338,7 @@ lemma multE_pos (v : Ideal (coordRing k (tE j) (⊥ : IntermediateField (K₀ k 
   have := hex.choose_spec.1
   exact Ideal.ramificationIdx_pos _ _
 
-set_option linter.unusedSectionVars false in
+omit [IsAlgClosed Ω] [E.IsElliptic] in
 lemma multE_finite :
     {v : Ideal (coordRing k (tE j) (⊥ : IntermediateField (K₀ k (tE j)) Ω)) |
       v.IsMaximal ∧ multE j v ≠ 1}.Finite :=
@@ -356,6 +356,7 @@ noncomputable def homE :
     rw [mul_one]
     exact multE_eq j w)
 
+omit [E.IsElliptic] in
 set_option maxHeartbeats 1000000 in
 set_option synthInstance.maxHeartbeats 400000 in
 /-- The stabilizer orders of `(E ∖ {0}) / {±1}` on both sides agree. -/
@@ -409,6 +410,6 @@ set_option synthInstance.maxHeartbeats 400000 in
 /-- **`(E ∖ {0}) / {±1}` as a subfield orbicurve.** -/
 noncomputable def isoHemiE : Iso (hemiE j) (hemi E) :=
   Iso.ofAlgEquiv (X := hemiE j) (Y := hemi E) (coordRingBotEquiv (transcendental_tE j)).symm
-    (fun w hw => @ramificationIdxIn_punctured_eq_multE k _ E Ω _ _ j _ _ _ w hw)
+    (fun w hw => ramificationIdxIn_punctured_eq_multE j w (hw := hw))
 
 end AffOrbicurve

@@ -35,7 +35,7 @@ namespace AffOrbicurve
 
 section CoreStar
 
-variable {k : Type u} [Field k] [CharZero k] (E : WeierstrassCurve k) [E.IsElliptic]
+variable {k : Type u} [Field k] [CharZero k] (E : WeierstrassCurve k)
 
 /-- **Uniqueness of morphisms to `(E ∖ {0}) / {±1}`**: every finite étale cover of `E ∖ {0}` has
 at most one finite étale morphism to `(E ∖ {0}) / {±1}`. -/
@@ -44,7 +44,6 @@ def CoreStar : Prop :=
 
 variable {E}
 
-set_option linter.unusedSectionVars false in
 lemma coreStar_of_isCoreOf (h : IsCoreOf (punctured E) (hemi E)) : CoreStar E :=
   fun Z φ => (h.2 Z (LocBar.of_hom φ)).2
 
@@ -62,7 +61,7 @@ end CoreStar
 
 section Omega
 
-variable {k : Type u} [Field k] [CharZero k] {E : WeierstrassCurve k} [E.IsElliptic]
+variable {k : Type u} [Field k] [CharZero k] {E : WeierstrassCurve k}
   {Ω : Type u} [Field Ω] [Algebra k Ω] [IsAlgClosed Ω] (j : E.toAffine.FunctionField →ₐ[k] Ω)
 
 /-- **`CoreStar` inside `Ω`**: for every finite extension `F ⊇ k(E)` in `Ω` unramified over the
@@ -407,6 +406,7 @@ instance normal_fnTY_tE : Normal (K₀ k (tE j)) (fnTY k (tE j) (yE j)) :=
 
 example : hemiE j = hemiTY k (tE j) (yE j) (transcendental_tE j) := rfl
 
+omit [E.IsElliptic] [IsAlgClosed Ω] in
 theorem sOmega_iff_sOmegaTY : SOmega j ↔ SOmegaTY k (tE j) (yE j) := by
   constructor
   · intro h ht _ _ L _ _ hL het g
@@ -581,10 +581,10 @@ lemma adjoin_param_le {u v : Ω} {S : Set Ω}
 
 variable [IsAlgClosed Ω] [CharZero k] {t : Ω}
 
-lemma finiteDimensional_bc (htK : Transcendental K t) (L : IntermediateField (K₀ k t) Ω)
+lemma finiteDimensional_bc (L : IntermediateField (K₀ k t) Ω)
     [FiniteDimensional (K₀ k t) L] :
     FiniteDimensional (K₀ K t) (IntermediateField.adjoin (K₀ K t) (L : Set Ω)) := by
-  obtain ⟨N, N', hLN, _, _, _, _, hNN', hN'⟩ := exists_galois_bc htK L
+  obtain ⟨N, N', hLN, _, _, _, _, hNN', hN'⟩ := exists_galois_bc (K := K) L
   have hle : IntermediateField.adjoin (K₀ K t) (L : Set Ω) ≤ N' := by
     rw [hN']
     exact IntermediateField.adjoin.mono _ _ _ hLN
@@ -674,7 +674,7 @@ theorem sOmegaTY_down [CharZero K] (htK : Transcendental K t) {b c : Ω} (hb : b
   -- the base change `L'` of `L`
   set L' := IntermediateField.adjoin (K₀ K t) (L : Set Ω)
   have hLL' : ∀ x ∈ L, x ∈ L' := fun x hx => IntermediateField.subset_adjoin _ _ hx
-  haveI : FiniteDimensional (K₀ K t) L' := finiteDimensional_bc htK L
+  haveI : FiniteDimensional (K₀ K t) L' := finiteDimensional_bc (K := K) L
   haveI : CharZero (K₀ K t) := charZero_of_injective_algebraMap (algebraMap K (K₀ K t)).injective
   haveI : Algebra.IsSeparable (K₀ K t) L' := Algebra.IsAlgebraic.isSeparable_of_perfectField
   have hyL : y ∈ L := hL (IntermediateField.subset_adjoin _ _ rfl)
@@ -839,7 +839,7 @@ end Weq
 section CoreStarMap
 
 variable {k K : Type u} [Field k] [Field K] [CharZero k] (f : k →+* K)
-  (E : WeierstrassCurve k) [E.IsElliptic]
+  (E : WeierstrassCurve k)
 
 set_option maxHeartbeats 1000000 in
 /-- **`CoreStar` descends along any field embedding.** -/

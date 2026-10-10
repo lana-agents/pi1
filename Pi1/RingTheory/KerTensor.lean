@@ -15,8 +15,6 @@ public import Pi1.Mathlib.RingTheory.Flat.Equalizer
 
 attribute [local instance] Module.FinitePresentation.of_finite_of_finitePresentation
 
-set_option linter.unusedTactic false
-
 open TensorProduct
 
 universe u
