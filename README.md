@@ -72,4 +72,26 @@ listed is proved without `sorry`.
   cores (`AffOrbicurve.isCoreOf_of_subsingleton`), and invariance of ramification indices under
   extension of the constant field (`AffOrbicurve.ramificationIdx_bc`).
 
+**Functoriality of `π₁ᵉᵗ` and surjectivity** (`Pi1/FundamentalGroup/Functoriality.lean`,
+`Pi1/Mathlib/CategoryTheory/Galois/FiberAutMap.lean`)
+
+* `PreGaloisCategory.fiberAutMap e : Aut F →* Aut G` for `e : H ⋙ F ≅ G` (whiskering with `H`,
+  conjugated by `e`), continuous (`continuous_fiberAutMap`), functorial (`fiberAutMap_congr`,
+  `fiberAutMap_id`, `fiberAutMap_comp`); `FiberFunctor.ofIso`; SGA 1 V.6.9 (Galois-theoretic
+  part): `toAut_comp_surjective`, `fiberAutMap_surjective` (if `H` preserves connected objects,
+  `Aut F → Aut G` is surjective).
+* For `f : Y ⟶ X` and geometric points `ξ`, `η` with `ξ ≫ f = η`:
+  `FiniteEtale.pullbackFiberIso f h : pullback f ⋙ fiber ξ ≅ fiber η` and the continuous
+  homomorphism `FiniteEtale.fundamentalGroupMap f h : π₁ᵉᵗ(ξ) →ₜ* π₁ᵉᵗ(η)`, with
+  `fundamentalGroupMap_id` and `fundamentalGroupMap_comp`.
+* `FiniteEtale.isConnected_iff_connectedSpace`: the connected objects of `FiniteEtale X` are the
+  finite étale `X`-schemes with connected total space.
+* SGA 1 V.6.9: `FiniteEtale.fundamentalGroupMap_surjective` (`X`, `Y` connected and `f^*`
+  preserves connected objects ⇒ `π₁ᵉᵗ(Y) → π₁ᵉᵗ(X)` surjective), and the geometric form
+  `fundamentalGroupMap_surjective_of_geometricallyConnected` for `f` universally open with
+  geometrically connected fibres (Mathlib's `GeometricallyConnected`, `UniversallyOpen`).
+
+Validation: `.orchestra/validation.sh` (clean tree, `mk_all --check`, no `sorry`/`axiom`,
+`lake build --wfail`).
+
 License: Apache 2.0 (see `LICENSE`).

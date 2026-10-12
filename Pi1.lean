@@ -1,19 +1,16 @@
-/-
-Copyright (c) 2025 Christian Merten. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Christian Merten
--/
 module  -- shake: keep-all --deprecated_module: ignore
 
 public import Pi1.FundamentalGroup.AffineAnd
 public import Pi1.FundamentalGroup.AffineColimits
 public import Pi1.FundamentalGroup.FiniteEtale
+public import Pi1.FundamentalGroup.Functoriality
 public import Pi1.FundamentalGroup.Galois
 public import Pi1.FundamentalGroup.Point
 public import Pi1.FundamentalGroup.Rank
 public import Pi1.Mathlib.AlgebraicGeometry.Limits
 public import Pi1.Mathlib.AlgebraicGeometry.Morphisms.Finite
 public import Pi1.Mathlib.AlgebraicGeometry.Morphisms.Flat
+public import Pi1.Mathlib.CategoryTheory.Galois.FiberAutMap
 public import Pi1.Mathlib.CategoryTheory.Galois.IsFundamentalGroup
 public import Pi1.Mathlib.CategoryTheory.Limits.MorphismProperty
 public import Pi1.Mathlib.RingTheory.Flat.Equalizer
