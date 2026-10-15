@@ -2,6 +2,7 @@ module  -- shake: keep-all --deprecated_module: ignore
 
 public import Pi1.FundamentalGroup.AffineAnd
 public import Pi1.FundamentalGroup.AffineColimits
+public import Pi1.FundamentalGroup.AlgClosedBaseChange
 public import Pi1.FundamentalGroup.BaseChangeInjective
 public import Pi1.FundamentalGroup.FiniteEtale
 public import Pi1.FundamentalGroup.Functoriality
