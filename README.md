@@ -91,6 +91,23 @@ listed is proved without `sorry`.
   `fundamentalGroupMap_surjective_of_geometricallyConnected` for `f` universally open with
   geometrically connected fibres (Mathlib's `GeometricallyConnected`, `UniversallyOpen`).
 
+**Profinite surface groups** (`Pi1/Surface/`, `Pi1/Profinite/`)
+
+* `Pi1.SurfaceGroup g r`: `Π_{g,r} = ⟨a₁, b₁, …, a_g, b_g, c₁, …, c_r | ∏ [aᵢ, bᵢ] ∏ cⱼ = 1⟩`
+  (conventions of `generalized-albanese`), `Pi1.ProfiniteSurfaceGroup g r = Π̂_{g,r}`;
+  `SurfaceGroup.freeEquiv : Π_{g,r+1} ≃* F(a, b, c_{<r})`, `profiniteFreeEquiv`, and
+  `oneOneEquiv : Π_{1,1} ≃* F₂`, `profiniteOneOneEquiv : Π̂_{1,1} ≃ₜ* F̂₂`.
+* `Pi1.Profinite.liftFinite`: continuous extensions of homomorphisms to finite groups along
+  `G → Ĝ`; they separate points (`eq_one_of_forall_liftFinite`); `completionMap`,
+  `completionCongr`.
+* **Slimness** (`Pi1.Profinite.IsSlim`: every open subgroup has trivial centraliser):
+  `isSlim_completion_freeGroup` (free profinite groups of rank `≥ 2`, by a wreath-product
+  argument), hence `SurfaceGroup.isSlim` and `SurfaceGroup.center_eq_bot` for hyperbolic `(g, r)`
+  with `r ≥ 1`. The closed case `r = 0` is not proved here.
+* **Cuspidal inertia**: `SurfaceGroup.cuspInertia j : ℤ̂ →* Π̂_{g,r}` (`k ↦ cⱼ ^ k`) is injective
+  (`cuspInertia_injective`, for `r ≥ 2` or `g ≥ 1`), its image is the closed subgroup
+  `inertia j = ⟨cⱼ⟩‾` (`range_cuspInertia`), and `cuspInertiaEquiv : ℤ̂ ≃ₜ* inertia j`.
+
 Validation: `.orchestra/validation.sh` (clean tree, `mk_all --check`, no `sorry`/`axiom`,
 `lake build --wfail`).
 
