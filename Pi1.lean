@@ -2,6 +2,7 @@ module  -- shake: keep-all --deprecated_module: ignore
 
 public import Pi1.FundamentalGroup.AffineAnd
 public import Pi1.FundamentalGroup.AffineColimits
+public import Pi1.FundamentalGroup.BaseChangeInjective
 public import Pi1.FundamentalGroup.FiniteEtale
 public import Pi1.FundamentalGroup.Functoriality
 public import Pi1.FundamentalGroup.Galois
@@ -12,6 +13,7 @@ public import Pi1.Mathlib.AlgebraicGeometry.Limits
 public import Pi1.Mathlib.AlgebraicGeometry.Morphisms.Finite
 public import Pi1.Mathlib.AlgebraicGeometry.Morphisms.Flat
 public import Pi1.Mathlib.CategoryTheory.Galois.FiberAutMap
+public import Pi1.Mathlib.CategoryTheory.Galois.FiberAutMapInjective
 public import Pi1.Mathlib.CategoryTheory.Galois.IsFundamentalGroup
 public import Pi1.Mathlib.CategoryTheory.Limits.MorphismProperty
 public import Pi1.Mathlib.GroupTheory.GroupExtension.Outer
@@ -60,6 +62,7 @@ public import Pi1.Profinite.Slim
 public import Pi1.RingTheory.FiniteEtale.Basic
 public import Pi1.RingTheory.FiniteEtale.Descent
 public import Pi1.RingTheory.FiniteEtale.Equalizer
+public import Pi1.RingTheory.FiniteEtale.FieldDescent
 public import Pi1.RingTheory.KerTensor
 public import Pi1.RingTheory.Smooth.Dedekind
 public import Pi1.RingTheory.Smooth.StandardSmoothSmooth
