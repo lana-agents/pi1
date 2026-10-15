@@ -14,6 +14,7 @@ public import Pi1.Mathlib.AlgebraicGeometry.Morphisms.Flat
 public import Pi1.Mathlib.CategoryTheory.Galois.FiberAutMap
 public import Pi1.Mathlib.CategoryTheory.Galois.IsFundamentalGroup
 public import Pi1.Mathlib.CategoryTheory.Limits.MorphismProperty
+public import Pi1.Mathlib.GroupTheory.GroupExtension.Outer
 public import Pi1.Mathlib.RingTheory.Flat.Equalizer
 public import Pi1.Mathlib.RingTheory.Geometric
 public import Pi1.Mathlib.RingTheory.Ideal.Quotient.Operations

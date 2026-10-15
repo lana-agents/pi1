@@ -10,6 +10,7 @@ public import Pi1.Profinite.Slim
 public import Mathlib.Data.ZMod.Basic
 public import Mathlib.Algebra.BigOperators.Fin
 public import Mathlib.Topology.Algebra.Group.Basic
+public import Pi1.Mathlib.GroupTheory.GroupExtension.Outer
 
 /-!
 # Profinite surface groups
@@ -101,6 +102,15 @@ theorem isSlim (hr : 0 < r) (h : IsHyperbolic g r) : IsSlim (ProfiniteSurfaceGro
 theorem center_eq_bot (hr : 0 < r) (h : IsHyperbolic g r) :
     Subgroup.center (ProfiniteSurfaceGroup g r) = ⊥ :=
   (isSlim hr h).center_eq_bot
+
+/-- **Extensions of a group by `Π̂_{g,r}` are determined by their outer action** (hyperbolic,
+`r ≥ 1`): for `1 → Π̂_{g,r} → E → G → 1`, `E ≃* Aut(Π̂_{g,r}) ×_{Out(Π̂_{g,r})} G`. For the
+homotopy exact sequence `1 → Δ_X → Π_X → G_k → 1` of a hyperbolic curve this says that `Π_X` is
+recovered from the outer Galois representation `G_k → Out(Δ_X)`. -/
+noncomputable def extensionEquivFiberProd (hr : 0 < r) (h : IsHyperbolic g r) {E G : Type*}
+    [Group E] [Group G] (S : GroupExtension (ProfiniteSurfaceGroup g r) E G) :
+    E ≃* S.fiberProd :=
+  S.equivFiberProd (center_eq_bot hr h)
 
 /-! ### Finite quotients with cuspidal generators of prescribed order -/
 

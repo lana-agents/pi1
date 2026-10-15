@@ -107,6 +107,16 @@ listed is proved without `sorry`.
 * **Cuspidal inertia**: `SurfaceGroup.cuspInertia j : ℤ̂ →* Π̂_{g,r}` (`k ↦ cⱼ ^ k`) is injective
   (`cuspInertia_injective`, for `r ≥ 2` or `g ≥ 1`), its image is the closed subgroup
   `inertia j = ⟨cⱼ⟩‾` (`range_cuspInertia`), and `cuspInertiaEquiv : ℤ̂ ≃ₜ* inertia j`.
+* **Outer actions** (`Pi1/Mathlib/GroupTheory/GroupExtension/Outer.lean`): for a group extension
+  `1 → N → E → G → 1`, `GroupExtension.outerAction : G →* Out(N)` and, for centre-free `N`,
+  `GroupExtension.equivFiberProd : E ≃* Aut(N) ×_{Out(N)} G`; applied to `Π̂_{g,r}`:
+  `SurfaceGroup.extensionEquivFiberProd`.
+* **`Π_X ↠ G_k`** (`Pi1/FundamentalGroup/GaloisQuotient.lean`):
+  `FiniteEtale.toGaloisGroup f h : π₁ᵉᵗ(X, x) →* Gal(Ω/k)` for `f : X ⟶ Spec k`, continuous,
+  surjective for `X` connected and geometrically connected (`toGaloisGroup_surjective`), and
+  trivial on the image of `π₁ᵉᵗ` of any `Y ⟶ X` over `Spec Ω`
+  (`toGaloisGroup_comp_fundamentalGroupMap`). Exactness in the middle and injectivity of
+  `π₁ᵉᵗ(X_Ω) → π₁ᵉᵗ(X)` are not proved here.
 
 Validation: `.orchestra/validation.sh` (clean tree, `mk_all --check`, no `sorry`/`axiom`,
 `lake build --wfail`).
