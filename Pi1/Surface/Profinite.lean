@@ -61,6 +61,31 @@ noncomputable def profiniteFreeEquiv :
     ProfiniteSurfaceGroup g (r + 1) ≃ₜ* FreeHat (SurfaceGen g r) :=
   completionCongr freeEquiv
 
+/-- The generators `a₁, b₁` of `Π_{1,1}`, i.e. the free basis of `Π_{1,1} ≅ F(a₁, b₁)`. -/
+def genEquivOneZero : SurfaceGen 1 0 ≃ Fin 2 where
+  toFun
+    | .a _ => 0
+    | .b _ => 1
+  invFun i := if i = 0 then .a 0 else .b 0
+  left_inv s := by
+    cases s with
+    | a i => simp [Subsingleton.elim i 0]
+    | b i => simp [Subsingleton.elim i 0]
+    | c j => exact j.elim0
+  right_inv i := by fin_cases i <;> rfl
+
+/-- `Π_{1,1} ≃* F₂`: the once-punctured torus group is free on `a₁, b₁` (with
+`c₁ = [a₁, b₁]⁻¹`). -/
+noncomputable def oneOneEquiv : SurfaceGroup 1 1 ≃* FreeGroup (Fin 2) :=
+  freeEquiv.trans (FreeGroup.freeGroupCongr genEquivOneZero)
+
+/-- `Π̂_{1,1} ≃ₜ* F̂₂`. This identifies the étale fundamental group of a once-punctured elliptic
+curve over `ℂ`, computed in `oka` (`Uniformization.nonempty_etaleFundamentalGroup_equiv`) as the
+profinite completion of `F₂`, with `Π̂_{1,1}`. -/
+noncomputable def profiniteOneOneEquiv :
+    ProfiniteSurfaceGroup 1 1 ≃ₜ* completion (GrpCat.of (FreeGroup (Fin 2))) :=
+  completionCongr oneOneEquiv
+
 /-- **`Π̂_{g,r}` is slim** for `(g, r)` hyperbolic with `r ≥ 1`. -/
 theorem isSlim (hr : 0 < r) (h : IsHyperbolic g r) : IsSlim (ProfiniteSurfaceGroup g r) := by
   obtain ⟨r, rfl⟩ : ∃ r', r = r' + 1 := ⟨r - 1, by omega⟩
