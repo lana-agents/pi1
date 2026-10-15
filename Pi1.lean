@@ -5,6 +5,7 @@ public import Pi1.FundamentalGroup.AffineColimits
 public import Pi1.FundamentalGroup.FiniteEtale
 public import Pi1.FundamentalGroup.Functoriality
 public import Pi1.FundamentalGroup.Galois
+public import Pi1.FundamentalGroup.GaloisQuotient
 public import Pi1.FundamentalGroup.Point
 public import Pi1.FundamentalGroup.Rank
 public import Pi1.Mathlib.AlgebraicGeometry.Limits
