@@ -135,6 +135,34 @@ listed is proved without `sorry`.
   (`ProfiniteGrp.map_ker_eq_ker_of_index_map_eq`). The numerical input (local class field theory,
   [AbsAnab] Lemma 1.1.5) is not formalised here.
 
+### Open MR2 items (scoping notes)
+
+* **Invariance under extension of algebraically closed fields** (`Q̄ → ℂ`): only surjectivity of
+  `π₁ᵉᵗ(X_Ω) → π₁ᵉᵗ(X)` is proved (`fundamentalGroupMap_surjective_of_isAlgClosed`). Injectivity
+  says every finite étale cover of `X_Ω` comes from `X`. Spreading out (Mathlib's EGA IV 8 limits,
+  as in `HomotopyExactQcqs.lean`) reduces it to a cover over `X_A`, `A ⊆ Ω` finitely generated over
+  `k`, but one still needs this family to be constant in `A`. That rigidity is false in
+  characteristic `p` for affine `X` (Artin–Schreier covers); in characteristic `0` it needs either
+  properness (proper base change) or a compactification with tame ramification along the boundary.
+  Neither is available here, so this is a large, separate project.
+* **`Δ_X ↪ Π_X` beyond affine `X`**: needs descent of finite étale *schemes* (not only morphisms)
+  along `X_Ω = lim X_K`, which Mathlib does not provide yet.
+* **General `(g, r)`**: over `ℂ`, oka's `ComplexAnalytic.etaleFundamentalGroupEquivCompletion`
+  identifies `π₁ᵉᵗ(X)` with the profinite completion of `π₁(X^an)` for every connected `X` locally
+  of finite type over `ℂ`. What is missing is topological: `X^an` is a genus-`g` surface minus `r`
+  points, with fundamental group `Π_{g,r}`. This needs the classification of compact Riemann
+  surfaces (or uniformisation) and van Kampen. It is done only for `E ∖ O` (oka, Fricke
+  uniformisation). This is Riemann-existence/GAGA-scale input and should be its own work package,
+  together with the invariance item above to pass from `ℂ` to `Q̄`.
+* **`r = 0` slimness** of `Π̂_g`: the `r > 0` proof uses freeness. For `r = 0` the standard routes
+  need either that open subgroups of `Π̂_g` are again closed surface groups (Riemann–Hurwitz,
+  topological) together with centre-freeness, or the Chevalley–Weil description of `H₁` of finite
+  étale covers as a Galois module. Neither is formalised.
+* **`Ẑ(1)` twist of cuspidal inertia**: `cuspInertiaEquiv : ℤ̂ ≃ₜ* inertia j` is abstract group
+  theory in `Π̂_{g,r}`. The `G_k`-equivariant identification with `Ẑ(1)` needs the geometric
+  cusps of `X` (decomposition groups at the boundary of the compactification). That requires the
+  general `(g, r)` comparison above.
+
 Validation: `.orchestra/validation.sh` (clean tree, `mk_all --check`, no `sorry`/`axiom`,
 `lake build --wfail`).
 
