@@ -5,6 +5,7 @@ public import Pi1.FundamentalGroup.AffineColimits
 public import Pi1.FundamentalGroup.AlgClosedBaseChange
 public import Pi1.FundamentalGroup.BaseChangeInjective
 public import Pi1.FundamentalGroup.DenseOpen
+public import Pi1.FundamentalGroup.Extension
 public import Pi1.FundamentalGroup.FiniteEtale
 public import Pi1.FundamentalGroup.Functoriality
 public import Pi1.FundamentalGroup.Galois
