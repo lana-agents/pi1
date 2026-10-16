@@ -13,6 +13,7 @@ public import Pi1.FundamentalGroup.HomotopyExact
 public import Pi1.FundamentalGroup.HomotopyExactQcqs
 public import Pi1.FundamentalGroup.Point
 public import Pi1.FundamentalGroup.Rank
+public import Pi1.Mathlib.AlgebraicGeometry.Geometrically.Reduced
 public import Pi1.Mathlib.AlgebraicGeometry.Limits
 public import Pi1.Mathlib.AlgebraicGeometry.Morphisms.Finite
 public import Pi1.Mathlib.AlgebraicGeometry.Morphisms.Flat
