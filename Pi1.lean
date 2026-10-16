@@ -27,6 +27,7 @@ public import Pi1.Mathlib.RingTheory.RingHom.Etale
 public import Pi1.Mathlib.RingTheory.RingHom.Finite
 public import Pi1.Mathlib.RingTheory.RingHom.Smooth
 public import Pi1.Mathlib.RingTheory.TensorProduct.Basic
+public import Pi1.Mathlib.Topology.Algebra.ArithmeticQuotient
 public import Pi1.Orbicurve.BaseChange
 public import Pi1.Orbicurve.Core
 public import Pi1.Orbicurve.CoreCriterion

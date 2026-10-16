@@ -123,6 +123,12 @@ listed is proved without `sorry`.
   `Pi1/FundamentalGroup/HomotopyExact.lean`), via the Galois-category image criterion
   `PreGaloisCategory.mem_range_fiberAutMap` (`Pi1/Mathlib/CategoryTheory/Galois/FiberAutMapExact.lean`)
   and descent of sections of finite étale `X`-schemes to a finite subextension.
+* **Arithmetic quotient detected by indices** (`Pi1/Mathlib/Topology/Algebra/ArithmeticQuotient.lean`,
+  formal part of [AbsAnab] Lemmas 1.1.4 (ii), 1.3.8): for `π : Π ↠ G` profinite with closed kernel,
+  `ker π = ⋂ {U open | [G : π U] = [Π : U]}` (`ProfiniteGrp.ker_eq_sInf_index_map_eq`), so an
+  isomorphism preserving `U ↦ [Gᵢ : πᵢ U]` maps `ker π₁` onto `ker π₂`
+  (`ProfiniteGrp.map_ker_eq_ker_of_index_map_eq`). The numerical input (local class field theory,
+  [AbsAnab] Lemma 1.1.5) is not formalised here.
 
 Validation: `.orchestra/validation.sh` (clean tree, `mk_all --check`, no `sorry`/`axiom`,
 `lake build --wfail`).
