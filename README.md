@@ -123,6 +123,11 @@ listed is proved without `sorry`.
   `Pi1/FundamentalGroup/HomotopyExact.lean`), via the Galois-category image criterion
   `PreGaloisCategory.mem_range_fiberAutMap` (`Pi1/Mathlib/CategoryTheory/Galois/FiberAutMapExact.lean`)
   and descent of sections of finite étale `X`-schemes to a finite subextension.
+  Exactness in the middle also holds for connected **quasi-compact quasi-separated** `X` with
+  `X_Ω` connected (`exists_fundamentalGroupMap_baseChange_eq_of_qcqs`,
+  `ker_toGaloisGroup_eq_range_of_qcqs`, `Pi1/FundamentalGroup/HomotopyExactQcqs.lean`): `X_Ω` is
+  the limit of the `X_K` over finite subextensions (`isLimitBaseChangeCone`), and Mathlib's EGA IV 8
+  limit formalism descends sections. Injectivity of `Δ_X → Π_X` is proved for affine `X` only.
 * **Arithmetic quotient detected by indices** (`Pi1/Mathlib/Topology/Algebra/ArithmeticQuotient.lean`,
   formal part of [AbsAnab] Lemmas 1.1.4 (ii), 1.3.8): for `π : Π ↠ G` profinite with closed kernel,
   `ker π = ⋂ {U open | [G : π U] = [Π : U]}` (`ProfiniteGrp.ker_eq_sInf_index_map_eq`), so an

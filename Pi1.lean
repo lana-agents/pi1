@@ -9,6 +9,7 @@ public import Pi1.FundamentalGroup.Functoriality
 public import Pi1.FundamentalGroup.Galois
 public import Pi1.FundamentalGroup.GaloisQuotient
 public import Pi1.FundamentalGroup.HomotopyExact
+public import Pi1.FundamentalGroup.HomotopyExactQcqs
 public import Pi1.FundamentalGroup.Point
 public import Pi1.FundamentalGroup.Rank
 public import Pi1.Mathlib.AlgebraicGeometry.Limits
