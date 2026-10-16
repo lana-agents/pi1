@@ -23,7 +23,13 @@ change), and consequently:
   (`Scheme.Hom.normalizationCoprodIso`);
 * `AlgebraicGeometry.FiniteEtale.connectedSpace_pullback_of_isIso_fromNormalization`: base change
   along `j` preserves connected finite étale covers (with nonempty restriction), so that
-  `π₁ᵉᵗ(U) → π₁ᵉᵗ(X)` is surjective (`FiniteEtale.fundamentalGroupMap_surjective`).
+  `π₁ᵉᵗ(U) → π₁ᵉᵗ(X)` is surjective
+  (`FiniteEtale.fundamentalGroupMap_surjective_of_isIso_fromNormalization`);
+* `AlgebraicGeometry.FiniteEtale.faithful_pullback_of_isIso_fromNormalization`,
+  `AlgebraicGeometry.FiniteEtale.full_pullback_of_isIso_fromNormalization`: restriction along `j`
+  is fully faithful on finite étale covers. A morphism `φ : A ⟶ B` is a section of
+  `A ×_X B ⟶ A`; sections over `U` extend uniquely through the normalization
+  (`Scheme.Hom.extendSection`, `Scheme.Hom.eq_of_isIso_fromNormalization`).
 -/
 
 @[expose] public section
@@ -108,6 +114,35 @@ theorem connectedSpace_of_isIso_fromNormalization [IsIso a.fromNormalization]
   obtain ⟨t⟩ := (inferInstance : Nonempty T)
   exact IsEmpty.false (inv a.fromNormalization t)
 
+/-- Two sections of an affine `π : Z ⟶ T` agree if they agree on `W`, when the normalization of
+`T` in `W` is trivial. -/
+lemma eq_of_isIso_fromNormalization [IsIso a.fromNormalization] {Z : Scheme.{u}} (π : Z ⟶ T)
+    [IsAffineHom π] {f₁ f₂ : T ⟶ Z} (h₁ : f₁ ≫ π = 𝟙 T) (h₂ : f₂ ≫ π = 𝟙 T)
+    (H : a ≫ f₁ = a ≫ f₂) : f₁ = f₂ := by
+  rw [← cancel_epi a.fromNormalization]
+  refine normalization.hom_ext a _ _ π ?_ ?_ ?_
+  · simp only [toNormalization_fromNormalization_assoc, H]
+  · rw [Category.assoc, h₁, Category.comp_id]
+  · rw [Category.assoc, h₂, Category.comp_id]
+
+/-- A section over `W` of an integral `π : Z ⟶ T` extends to a section over `T`, when the
+normalization of `T` in `W` is trivial. -/
+noncomputable def extendSection [IsIso a.fromNormalization] {Z : Scheme.{u}} (π : Z ⟶ T)
+    [IsIntegralHom π] (s : W ⟶ Z) (hs : s ≫ π = a) : T ⟶ Z :=
+  inv a.fromNormalization ≫ a.normalizationDesc s π hs.symm
+
+@[reassoc (attr := simp)]
+lemma extendSection_comp [IsIso a.fromNormalization] {Z : Scheme.{u}} (π : Z ⟶ T)
+    [IsIntegralHom π] (s : W ⟶ Z) (hs : s ≫ π = a) : a.extendSection π s hs ≫ π = 𝟙 T := by
+  simp [extendSection]
+
+@[reassoc (attr := simp)]
+lemma comp_extendSection [IsIso a.fromNormalization] {Z : Scheme.{u}} (π : Z ⟶ T)
+    [IsIntegralHom π] (s : W ⟶ Z) (hs : s ≫ π = a) : a ≫ a.extendSection π s hs = s := by
+  have key : a ≫ inv a.fromNormalization = a.toNormalization := by
+    rw [IsIso.comp_inv_eq, toNormalization_fromNormalization]
+  rw [extendSection, reassoc_of% key, toNormalization_normalizationDesc]
+
 end Scheme.Hom
 
 namespace FiniteEtale
@@ -131,6 +166,53 @@ theorem fundamentalGroupMap_surjective_of_isIso_fromNormalization [ConnectedSpac
     Function.Surjective (fundamentalGroupMap j h) :=
   fundamentalGroupMap_surjective_of_connectedSpace j h fun A _ ↦
     connectedSpace_pullback_of_isIso_fromNormalization j A
+
+section FullyFaithful
+
+variable {A B : FiniteEtale X}
+
+/-- The graph `A ⟶ A ×_X B` of a morphism of finite étale `X`-schemes. -/
+noncomputable abbrev graph (φ : A ⟶ B) : A.left ⟶ Limits.pullback A.hom B.hom :=
+  pullback.lift (𝟙 _) φ.left (by simp)
+
+/-- **Restriction to `U` is faithful** on finite étale covers. -/
+instance faithful_pullback_of_isIso_fromNormalization : (pullback j).Faithful where
+  map_injective {A B} φ ψ hφψ := by
+    have := Scheme.Hom.isIso_fromNormalization_pullback_fst j A.hom
+    have H : pullback.fst A.hom j ≫ φ.left = pullback.fst A.hom j ≫ ψ.left := by
+      have h := congrArg (fun χ ↦ χ.left ≫ pullback.fst B.hom j) hφψ
+      simpa using h
+    have hσ : graph φ = graph ψ := by
+      refine (pullback.fst A.hom j).eq_of_isIso_fromNormalization (pullback.fst A.hom B.hom)
+        (by simp) (by simp) ?_
+      apply pullback.hom_ext <;> simp [H]
+    apply MorphismProperty.Over.Hom.ext
+    simpa using congrArg (· ≫ pullback.snd A.hom B.hom) hσ
+
+/-- **Restriction to `U` is full** on finite étale covers: a morphism over `U` extends to `X`
+through the normalization. -/
+instance full_pullback_of_isIso_fromNormalization : (pullback j).Full where
+  map_surjective {A B} h := by
+    have := Scheme.Hom.isIso_fromNormalization_pullback_fst j A.hom
+    let aA := pullback.fst A.hom j
+    let aB := pullback.fst B.hom j
+    have hh : h.left ≫ pullback.snd B.hom j = pullback.snd A.hom j := by simpa using h.w
+    let s : ((pullback j).obj A).left ⟶ Limits.pullback A.hom B.hom :=
+      pullback.lift aA (h.left ≫ aB) (by
+        simp only [aA, aB, Category.assoc, pullback.condition, reassoc_of% hh])
+    let σ := aA.extendSection (pullback.fst A.hom B.hom) s (by simp [s])
+    let φ : A ⟶ B := MorphismProperty.Over.homMk (σ ≫ pullback.snd _ _) (by
+      simp only [Category.assoc, ← pullback.condition]
+      simp [σ]) trivial
+    refine ⟨φ, MorphismProperty.Over.Hom.ext ?_⟩
+    apply pullback.hom_ext
+    · have e : aA ≫ σ ≫ pullback.snd A.hom B.hom = h.left ≫ aB := by
+        rw [Scheme.Hom.comp_extendSection_assoc]
+        simp [s]
+      simpa [φ] using e
+    · simp [hh]
+
+end FullyFaithful
 
 end FiniteEtale
 
