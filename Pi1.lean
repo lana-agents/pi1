@@ -4,6 +4,7 @@ public import Pi1.FundamentalGroup.AffineAnd
 public import Pi1.FundamentalGroup.AffineColimits
 public import Pi1.FundamentalGroup.AlgClosedBaseChange
 public import Pi1.FundamentalGroup.BaseChangeInjective
+public import Pi1.FundamentalGroup.DenseOpen
 public import Pi1.FundamentalGroup.FiniteEtale
 public import Pi1.FundamentalGroup.Functoriality
 public import Pi1.FundamentalGroup.Galois
@@ -15,6 +16,7 @@ public import Pi1.FundamentalGroup.Rank
 public import Pi1.Mathlib.AlgebraicGeometry.Limits
 public import Pi1.Mathlib.AlgebraicGeometry.Morphisms.Finite
 public import Pi1.Mathlib.AlgebraicGeometry.Morphisms.Flat
+public import Pi1.Mathlib.AlgebraicGeometry.Normalization
 public import Pi1.Mathlib.CategoryTheory.Galois.FiberAutMap
 public import Pi1.Mathlib.CategoryTheory.Galois.FiberAutMapExact
 public import Pi1.Mathlib.CategoryTheory.Galois.FiberAutMapInjective
