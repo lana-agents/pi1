@@ -25,7 +25,8 @@ the spectrum of a field is universally open (Mathlib), so SGA 1 V.6.9
 (`fundamentalGroupMap_surjective_of_geometricallyConnected`) applies.
 
 This is the right half of the homotopy exact sequence; exactness in the middle and injectivity of
-`Δ_X = π₁ᵉᵗ(X_Ω) → Π_X` are not proved here.
+`Δ_X = π₁ᵉᵗ(X_Ω) → Π_X` are proved for affine `X` in
+`Pi1.FundamentalGroup.HomotopyExact` and `Pi1.FundamentalGroup.BaseChangeInjective`.
 -/
 
 @[expose] public section

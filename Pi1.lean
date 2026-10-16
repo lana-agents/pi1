@@ -8,12 +8,14 @@ public import Pi1.FundamentalGroup.FiniteEtale
 public import Pi1.FundamentalGroup.Functoriality
 public import Pi1.FundamentalGroup.Galois
 public import Pi1.FundamentalGroup.GaloisQuotient
+public import Pi1.FundamentalGroup.HomotopyExact
 public import Pi1.FundamentalGroup.Point
 public import Pi1.FundamentalGroup.Rank
 public import Pi1.Mathlib.AlgebraicGeometry.Limits
 public import Pi1.Mathlib.AlgebraicGeometry.Morphisms.Finite
 public import Pi1.Mathlib.AlgebraicGeometry.Morphisms.Flat
 public import Pi1.Mathlib.CategoryTheory.Galois.FiberAutMap
+public import Pi1.Mathlib.CategoryTheory.Galois.FiberAutMapExact
 public import Pi1.Mathlib.CategoryTheory.Galois.FiberAutMapInjective
 public import Pi1.Mathlib.CategoryTheory.Galois.IsFundamentalGroup
 public import Pi1.Mathlib.CategoryTheory.Limits.MorphismProperty

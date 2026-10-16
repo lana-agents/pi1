@@ -115,8 +115,14 @@ listed is proved without `sorry`.
   `FiniteEtale.toGaloisGroup f h : π₁ᵉᵗ(X, x) →* Gal(Ω/k)` for `f : X ⟶ Spec k`, continuous,
   surjective for `X` connected and geometrically connected (`toGaloisGroup_surjective`), and
   trivial on the image of `π₁ᵉᵗ` of any `Y ⟶ X` over `Spec Ω`
-  (`toGaloisGroup_comp_fundamentalGroupMap`). Exactness in the middle and injectivity of
-  `π₁ᵉᵗ(X_Ω) → π₁ᵉᵗ(X)` are not proved here.
+  (`toGaloisGroup_comp_fundamentalGroupMap`).
+* **Homotopy exact sequence `1 → Δ_X → Π_X → G_k → 1`** for affine `X = Spec R` over `k`, `Ω` a
+  separable closure, `X_Ω` connected (SGA 1 IX.6.1): `Δ_X ↪ Π_X`
+  (`fundamentalGroupMap_baseChange_injective`, `Pi1/FundamentalGroup/BaseChangeInjective.lean`)
+  and exactness in the middle, `ker (Π_X → G_k) = im (Δ_X → Π_X)` (`ker_toGaloisGroup_eq_range`,
+  `Pi1/FundamentalGroup/HomotopyExact.lean`), via the Galois-category image criterion
+  `PreGaloisCategory.mem_range_fiberAutMap` (`Pi1/Mathlib/CategoryTheory/Galois/FiberAutMapExact.lean`)
+  and descent of sections of finite étale `X`-schemes to a finite subextension.
 
 Validation: `.orchestra/validation.sh` (clean tree, `mk_all --check`, no `sorry`/`axiom`,
 `lake build --wfail`).
