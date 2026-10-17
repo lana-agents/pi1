@@ -19,6 +19,7 @@ public import Pi1.Mathlib.AlgebraicGeometry.Limits
 public import Pi1.Mathlib.AlgebraicGeometry.Morphisms.Finite
 public import Pi1.Mathlib.AlgebraicGeometry.Morphisms.Flat
 public import Pi1.Mathlib.AlgebraicGeometry.Normalization
+public import Pi1.Mathlib.CategoryTheory.Galois.EssImage
 public import Pi1.Mathlib.CategoryTheory.Galois.FiberAutMap
 public import Pi1.Mathlib.CategoryTheory.Galois.FiberAutMapExact
 public import Pi1.Mathlib.CategoryTheory.Galois.FiberAutMapInjective
