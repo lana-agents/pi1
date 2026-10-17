@@ -128,7 +128,8 @@ include F in
 object `A` and a point `a ∈ F A` whose stabilizer is `V` (the object with fibre `Aut F ⧸ V`;
 this version works for fibre functors to `FintypeCat` in any universe). -/
 theorem exists_obj_stabilizer_eq (V : Subgroup (Aut F)) (hV : IsOpen (V : Set (Aut F))) :
-    ∃ (A : C) (a : F.obj A), ∀ σ : Aut F, σ.hom.app A a = a ↔ σ ∈ V := by
+    ∃ (A : C) (a : F.obj A), (∀ σ : Aut F, σ.hom.app A a = a ↔ σ ∈ V) ∧
+      ∀ x : F.obj A, ∃ σ : Aut F, σ.hom.app A a = x := by
   have : Finite (Aut F ⧸ V) := Subgroup.quotient_finite_of_isOpen V hV
   have : DiscreteTopology (Aut F ⧸ V) := QuotientGroup.discreteTopology hV
   let n := Nat.card (Aut F ⧸ V)
@@ -159,19 +160,26 @@ theorem exists_obj_stabilizer_eq (V : Subgroup (Aut F)) (hV : IsOpen (V : Set (A
     (Action.forget _ _).mapIso ((ObjectProperty.ι _).mapIso i)
   have hi' (σ : Aut F) (y : F.obj A) : i'.hom (σ.hom.app A y) = σ • i'.hom y :=
     congr($((ObjectProperty.ι _).map i.hom |>.comm σ) y)
-  refine ⟨A, i'.inv (eq (QuotientGroup.mk 1)), fun σ ↦ ?_⟩
-  set a := i'.inv (eq (QuotientGroup.mk 1))
-  have key : σ.hom.app A a = a ↔ i'.hom (σ.hom.app A a) = i'.hom a := by
-    refine ⟨fun h ↦ by rw [h], fun h ↦ ?_⟩
-    have := congrArg i'.inv h
-    rwa [FintypeCat.hom_inv_id_apply, FintypeCat.hom_inv_id_apply] at this
-  rw [key, hi', hsmul]
   have hz : i'.hom (i'.inv (eq (QuotientGroup.mk 1))) = eq (QuotientGroup.mk 1) :=
     FintypeCat.inv_hom_id_apply i' _
-  simp only [a]
-  rw [hz, Equiv.symm_apply_apply, eq.injective.eq_iff]
-  change (QuotientGroup.mk (σ * 1) : Aut F ⧸ V) = QuotientGroup.mk 1 ↔ _
-  rw [mul_one, QuotientGroup.eq, mul_one, inv_mem_iff]
+  have hinj (y z : F.obj A) (h : i'.hom y = i'.hom z) : y = z := by
+    have := congrArg i'.inv h
+    rwa [FintypeCat.hom_inv_id_apply, FintypeCat.hom_inv_id_apply] at this
+  have hact (σ : Aut F) : i'.hom (σ.hom.app A (i'.inv (eq (QuotientGroup.mk 1)))) =
+      eq (QuotientGroup.mk σ) := by
+    rw [hi', hsmul, hz, Equiv.symm_apply_apply]
+    change eq (QuotientGroup.mk (σ * 1)) = _
+    rw [mul_one]
+  refine ⟨A, i'.inv (eq (QuotientGroup.mk 1)), fun σ ↦ ?_, fun x ↦ ?_⟩
+  · refine ⟨fun h ↦ ?_, fun h ↦ hinj _ _ ?_⟩
+    · have h' := congrArg i'.hom h
+      rw [hact, hz, eq.injective.eq_iff, QuotientGroup.eq, mul_one, inv_mem_iff] at h'
+      exact h'
+    · rw [hact, hz, eq.injective.eq_iff, QuotientGroup.eq, mul_one, inv_mem_iff]
+      exact h
+  · obtain ⟨σ, hσ⟩ := QuotientGroup.mk_surjective (eq.symm (i'.hom x))
+    refine ⟨σ, hinj _ _ ?_⟩
+    rw [hact, hσ, Equiv.apply_symm_apply]
 
 end Quotient
 
