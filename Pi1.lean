@@ -10,11 +10,13 @@ public import Pi1.FundamentalGroup.FiniteEtale
 public import Pi1.FundamentalGroup.Functoriality
 public import Pi1.FundamentalGroup.Galois
 public import Pi1.FundamentalGroup.GaloisQuotient
+public import Pi1.FundamentalGroup.GenericPoint
 public import Pi1.FundamentalGroup.HomotopyExact
 public import Pi1.FundamentalGroup.HomotopyExactQcqs
 public import Pi1.FundamentalGroup.Point
 public import Pi1.FundamentalGroup.Rank
 public import Pi1.FundamentalGroup.TwoCharts
+public import Pi1.FundamentalGroup.TwoChartsKernel
 public import Pi1.Mathlib.AlgebraicGeometry.Geometrically.Reduced
 public import Pi1.Mathlib.AlgebraicGeometry.Limits
 public import Pi1.Mathlib.AlgebraicGeometry.Morphisms.Finite
@@ -59,6 +61,7 @@ public import Pi1.Orbicurve.TameInertia
 public import Pi1.Orbicurve.ValuationInertia
 public import Pi1.Orbifold.Comparison
 public import Pi1.Orbifold.Etale
+public import Pi1.Orbifold.EtaleGalois
 public import Pi1.Orbifold.EtaleMathlib
 public import Pi1.Orbifold.EtaleOfAlgebra
 public import Pi1.Orbifold.EtaleProfinite

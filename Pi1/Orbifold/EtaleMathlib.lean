@@ -10,12 +10,13 @@ public import Pi1.Orbifold.EtaleProfinite
 /-!
 # Comparison with Mathlib's category of finite étale algebras
 
-For the trivial group `A = PUnit` (acting trivially on `R`, the scoped instance
-`TrivialAction.punitMulSemiringAction`), the category `EquivEtale R PUnit` of coded finite étale
-`R`-algebras is equivalent to `(CommAlgCat.FiniteEtale R)ᵒᵖ` (`EquivEtale.toFiniteEtale`; every
-finite étale algebra has a presentation `R[x₁, …, xₙ] ⧸ I`), compatibly with the fibre functors.
-Hence `etalePi1 R PUnit Ω` is isomorphic, as a topological group, to Mathlib's
-`Aut (CommAlgCat.FiniteEtale.fiber R Ω)` (`etalePi1EquivAutFiber`).
+For a trivial group `A` (`Subsingleton A`, e.g. `A = PUnit` acting trivially on `R` through the
+scoped instance `TrivialAction.punitMulSemiringAction`), the category `EquivEtale R A` of coded
+finite étale `R`-algebras is equivalent to `(CommAlgCat.FiniteEtale R)ᵒᵖ`
+(`EquivEtale.toFiniteEtale`; every finite étale algebra has a presentation
+`R[x₁, …, xₙ] ⧸ I`), compatibly with the fibre functors. Hence `etalePi1 R A Ω` is isomorphic, as
+a topological group, to Mathlib's `Aut (CommAlgCat.FiniteEtale.fiber R Ω)`
+(`etalePi1EquivAutFiber`).
 
 ## Main results
 
@@ -24,7 +25,9 @@ Hence `etalePi1 R PUnit Ω` is isomorphic, as a topological group, to Mathlib's
   case).
 * `FibreAut.equivAut`: for `F : C ⥤ FintypeCat`, `FibreAut (F ⋙ FintypeCat.incl) ≃ₜ* Aut F`,
   where `Aut F` carries Mathlib's topology (`CategoryTheory.PreGaloisCategory`).
-* `etalePi1EquivAutFiber : etalePi1 R PUnit Ω ≃ₜ* Aut (CommAlgCat.FiniteEtale.fiber R Ω)`.
+* `etalePi1EquivAutFiber : etalePi1 R A Ω ≃ₜ* Aut (CommAlgCat.FiniteEtale.fiber R Ω)` for a
+  trivial group `A`; `etalePi1EquivOfSubsingleton : etalePi1 R A Ω ≃ₜ* etalePi1 R A' Ω` for two
+  trivial groups.
 -/
 
 @[expose] public section
@@ -115,6 +118,14 @@ noncomputable def equivAut : FibreAut (F ⋙ FintypeCat.incl) ≃ₜ* Aut F :=
     continuous_toFun := he
     continuous_invFun := he.continuous_symm_of_equiv_compact_to_t2 (f := e.toEquiv) }
 
+lemma equivAut_symm_app (τ : Aut F) (c : C) (x : F.obj c) :
+    ((equivAut F).symm τ).app c x = τ.hom.app c x :=
+  rfl
+
+lemma equivAut_hom_app (σ : FibreAut (F ⋙ FintypeCat.incl)) (c : C) (x : F.obj c) :
+    ((equivAut F) σ).hom.app c x = σ.app c x := by
+  rw [← equivAut_symm_app, ContinuousMulEquiv.symm_apply_apply]
+
 end FintypeCat
 
 end FibreAut
@@ -134,19 +145,21 @@ open scoped TrivialAction
 
 noncomputable section
 
-variable (R : Type u) [CommRing R] (Ω : Type u) [Field Ω] [Algebra R Ω]
+variable (R : Type u) [CommRing R] (A : Type u) [Group A] [MulSemiringAction A R]
+  [Subsingleton A] (Ω : Type u) [Field Ω] [Algebra R Ω]
 
 namespace EquivEtale
 
-lemma act_punit_σ (X : EquivEtale R PUnit.{u + 1}) (a : PUnit.{u + 1}) (y : X.B) :
+variable {A} in
+lemma act_σ_of_subsingleton (X : EquivEtale R A) (a : A) (y : X.B) :
     (X.act a).σ y = y := by
   obtain rfl : a = 1 := Subsingleton.elim _ _
   rw [map_one]
   rfl
 
-/-- A coded finite étale algebra (with trivial group action) as an object of Mathlib's category
-of finite étale algebras. -/
-def toFiniteEtale : EquivEtale R PUnit.{u + 1} ⥤ (CommAlgCat.FiniteEtale.{u} R)ᵒᵖ where
+/-- A coded finite étale algebra (with an action of a trivial group) as an object of Mathlib's
+category of finite étale algebras. -/
+def toFiniteEtale : EquivEtale R A ⥤ (CommAlgCat.FiniteEtale.{u} R)ᵒᵖ where
   obj X :=
     letI := X.etale
     letI := X.finite
@@ -157,19 +170,19 @@ def toFiniteEtale : EquivEtale R PUnit.{u + 1} ⥤ (CommAlgCat.FiniteEtale.{u} R
 
 namespace toFiniteEtale
 
-instance : (toFiniteEtale R).Faithful where
+instance : (toFiniteEtale R A).Faithful where
   map_injective {X Y} φ ψ h := by
     apply EquivEtale.Hom.ext
     ext y
     exact congrArg (fun g => g.unop.hom.hom y) h
 
-instance : (toFiniteEtale R).Full where
+instance : (toFiniteEtale R A).Full where
   map_surjective {X Y} g := ⟨⟨g.unop.hom.hom, fun a y => by
-    rw [act_punit_σ, act_punit_σ]⟩, rfl⟩
+    rw [act_σ_of_subsingleton, act_σ_of_subsingleton]⟩, rfl⟩
 
 /-- A presentation of a finite étale algebra: a coded finite étale algebra with trivial action
 isomorphic to it. -/
-def presentation (S : CommAlgCat.FiniteEtale.{u} R) : EquivEtale R PUnit.{u + 1} :=
+def presentation (S : CommAlgCat.FiniteEtale.{u} R) : EquivEtale R A :=
   let h := Algebra.FiniteType.iff_quotient_mvPolynomial''.1 (inferInstance :
     Algebra.FiniteType R S)
   let e := Ideal.quotientKerAlgEquivOfSurjective h.choose_spec.choose_spec
@@ -182,16 +195,16 @@ def presentation (S : CommAlgCat.FiniteEtale.{u} R) : EquivEtale R PUnit.{u + 1}
 
 /-- The presentation is isomorphic to the given algebra. -/
 def presentationIso (S : CommAlgCat.FiniteEtale.{u} R) :
-    (toFiniteEtale R).obj (presentation R S) ≅ Opposite.op S :=
+    (toFiniteEtale R A).obj (presentation R A S) ≅ Opposite.op S :=
   let h := Algebra.FiniteType.iff_quotient_mvPolynomial''.1 (inferInstance :
     Algebra.FiniteType R S)
   (CommAlgCat.FiniteEtale.isoMk
     (Ideal.quotientKerAlgEquivOfSurjective h.choose_spec.choose_spec)).op.symm
 
-instance : (toFiniteEtale R).EssSurj where
-  mem_essImage S := ⟨presentation R S.unop, ⟨presentationIso R S.unop⟩⟩
+instance : (toFiniteEtale R A).EssSurj where
+  mem_essImage S := ⟨presentation R A S.unop, ⟨presentationIso R A S.unop⟩⟩
 
-instance : (toFiniteEtale R).IsEquivalence where
+instance : (toFiniteEtale R A).IsEquivalence where
 
 end toFiniteEtale
 
@@ -200,20 +213,34 @@ end EquivEtale
 /-- The fibre functor on coded finite étale algebras is the restriction of Mathlib's fibre
 functor. -/
 def toFiniteEtaleFiberIso :
-    EquivEtale.toFiniteEtale R ⋙ CommAlgCat.FiniteEtale.fiber.{u} R Ω ⋙ FintypeCat.incl ≅
-      etaleFibre R PUnit.{u + 1} Ω :=
+    EquivEtale.toFiniteEtale R A ⋙ CommAlgCat.FiniteEtale.fiber.{u} R Ω ⋙ FintypeCat.incl ≅
+      etaleFibre R A Ω :=
   NatIso.ofComponents (fun _ => Iso.refl _) (fun _ => rfl)
 
-/-- **Comparison with Mathlib.** For the trivial group, the étale fundamental group
-`etalePi1 R PUnit Ω` is isomorphic, as a topological group, to Mathlib's automorphism group of
+/-- **Comparison with Mathlib.** For a trivial group `A`, the étale fundamental group
+`etalePi1 R A Ω` is isomorphic, as a topological group, to Mathlib's automorphism group of
 the fibre functor `CommAlgCat.FiniteEtale.fiber R Ω` on finite étale `R`-algebras. -/
 def etalePi1EquivAutFiber :
-    etalePi1 R PUnit.{u + 1} Ω ≃ₜ* Aut (CommAlgCat.FiniteEtale.fiber.{u} R Ω) :=
+    etalePi1 R A Ω ≃ₜ* Aut (CommAlgCat.FiniteEtale.fiber.{u} R Ω) :=
   haveI : CompactSpace
       (FibreAut (CommAlgCat.FiniteEtale.fiber.{u} R Ω ⋙ FintypeCat.incl)) :=
     FibreAut.compactSpace_of_finite _
-  (FibreAut.equivOfIsEquivalence (EquivEtale.toFiniteEtale R)
-    (toFiniteEtaleFiberIso R Ω)).symm.trans (FibreAut.equivAut _)
+  (FibreAut.equivOfIsEquivalence (EquivEtale.toFiniteEtale R A)
+    (toFiniteEtaleFiberIso R A Ω)).symm.trans (FibreAut.equivAut _)
+
+/-- The automorphisms of `etalePi1EquivAutFiber` act on the fibre `X.B →ₐ[R] Ω` as the
+corresponding automorphism of Mathlib's fibre functor. -/
+lemma etalePi1EquivAutFiber_symm_app (σ : Aut (CommAlgCat.FiniteEtale.fiber.{u} R Ω))
+    (X : EquivEtale R A) (f : X.B →ₐ[R] Ω) :
+    ((etalePi1EquivAutFiber R A Ω).symm σ).app X f =
+      σ.hom.app ((EquivEtale.toFiniteEtale R A).obj X) f :=
+  rfl
+
+/-- **The étale fundamental group does not see a trivial group**: for trivial groups `A` and
+`A'` acting on `R`, `etalePi1 R A Ω ≃ₜ* etalePi1 R A' Ω`, compatibly with the fibres. -/
+def etalePi1EquivOfSubsingleton (A' : Type u) [Group A'] [MulSemiringAction A' R]
+    [Subsingleton A'] : etalePi1 R A Ω ≃ₜ* etalePi1 R A' Ω :=
+  (etalePi1EquivAutFiber R A Ω).trans (etalePi1EquivAutFiber R A' Ω).symm
 
 end
 

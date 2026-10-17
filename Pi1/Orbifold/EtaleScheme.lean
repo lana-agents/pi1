@@ -20,7 +20,9 @@ identifies Mathlib's fibre functor `S ↦ (S →ₐ[R] Ω)` with the fibre funct
 
 * `AlgebraicGeometry.FiniteEtale.autFiberSpecEquiv :
     π₁ᵉᵗ(ξ) ≃ₜ* Aut (CommAlgCat.FiniteEtale.fiber R Ω)`, and
-* `AlgebraicGeometry.FiniteEtale.etalePi1SpecEquiv : π₁ᵉᵗ(ξ) ≃ₜ* etalePi1 R PUnit Ω`,
+* `AlgebraicGeometry.FiniteEtale.etalePi1SpecEquiv : π₁ᵉᵗ(ξ) ≃ₜ* etalePi1 R PUnit Ω`, and more
+  generally `etalePi1SpecEquivOfSubsingleton : π₁ᵉᵗ(ξ) ≃ₜ* etalePi1 R A Ω` for a trivial group
+  `A`,
 
 so pi1's algebraic model `etalePi1 R PUnit Ω` (`Pi1.Orbifold`), in which the comparison with
 Galois groups (`Pi1.Orbifold.GaloisData.equivPi1`) is proved, is the étale fundamental group of
@@ -190,11 +192,35 @@ noncomputable def autFiberSpecEquiv :
     ((Pi1.Orbifold.FibreAut.equivOfIsEquivalence (specFunctor R)
       (specFunctorFiberIso R Ω)).trans (Pi1.Orbifold.FibreAut.equivAut _))
 
+/-- **The étale fundamental group of `Spec R`** at `Spec Ω ⟶ Spec R` is pi1's algebraic model
+`etalePi1 R A Ω` for any trivial group `A` acting on `R`. -/
+noncomputable def etalePi1SpecEquivOfSubsingleton (A : Type u) [Group A] [MulSemiringAction A R]
+    [Subsingleton A] : π₁ᵉᵗ(specPoint R Ω) ≃ₜ* Pi1.Orbifold.etalePi1 R A Ω :=
+  (autFiberSpecEquiv R Ω).trans (Pi1.Orbifold.etalePi1EquivAutFiber R A Ω).symm
+
 open scoped Pi1.Orbifold.TrivialAction in
 /-- **The étale fundamental group of `Spec R`** at `Spec Ω ⟶ Spec R` is pi1's algebraic model
 `etalePi1 R PUnit Ω`. -/
 noncomputable def etalePi1SpecEquiv :
     π₁ᵉᵗ(specPoint R Ω) ≃ₜ* Pi1.Orbifold.etalePi1 R PUnit.{u + 1} Ω :=
-  (autFiberSpecEquiv R Ω).trans (Pi1.Orbifold.etalePi1EquivAutFiber R Ω).symm
+  etalePi1SpecEquivOfSubsingleton R Ω PUnit.{u + 1}
+
+/-- **The action of `π₁ᵉᵗ(Spec R)` on the fibres of the algebraic model**: an element `γ` acts on
+an `R`-algebra map `f : X.B → Ω` as on the point `Spec Ω ⟶ Spec X.B` over `Spec R`. -/
+lemma etalePi1SpecEquivOfSubsingleton_app (A : Type u) [Group A] [MulSemiringAction A R]
+    [Subsingleton A] (γ : π₁ᵉᵗ(specPoint R Ω)) (X : Pi1.Orbifold.EquivEtale R A)
+    (f : X.B →ₐ[R] Ω) :
+    letI := X.etale; letI := X.finite
+    (etalePi1SpecEquivOfSubsingleton R Ω A γ).app X f =
+      homSpecEquivAlgHom R Ω (CommAlgCat.FiniteEtale.of R X.B)
+        (fiberObjEquivHom (specPoint R Ω) _ (γ.hom.app _
+          ((fiberObjEquivHom (specPoint R Ω) _).symm
+            ((homSpecEquivAlgHom R Ω (CommAlgCat.FiniteEtale.of R X.B)).symm f)))) := by
+  change ((Pi1.Orbifold.etalePi1EquivAutFiber R A Ω).symm (autFiberSpecEquiv R Ω γ)).app X f = _
+  rw [Pi1.Orbifold.etalePi1EquivAutFiber_symm_app, autFiberSpecEquiv,
+    ContinuousMulEquiv.trans_apply, ContinuousMulEquiv.trans_apply,
+    Pi1.Orbifold.FibreAut.equivAut_hom_app, Pi1.Orbifold.FibreAut.equivOfIsEquivalence_apply,
+    Pi1.Orbifold.FibreAut.restrict_app]
+  rfl
 
 end AlgebraicGeometry.FiniteEtale
