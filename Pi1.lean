@@ -60,6 +60,7 @@ public import Pi1.Orbicurve.SubfieldRamified
 public import Pi1.Orbicurve.TameInertia
 public import Pi1.Orbicurve.ValuationInertia
 public import Pi1.Orbifold.Comparison
+public import Pi1.Orbifold.CuspFilling
 public import Pi1.Orbifold.Etale
 public import Pi1.Orbifold.EtaleGalois
 public import Pi1.Orbifold.EtaleMathlib
