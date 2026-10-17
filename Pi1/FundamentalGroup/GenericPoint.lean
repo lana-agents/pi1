@@ -217,6 +217,36 @@ theorem galoisAction_surjective (R : Type u) [CommRing R] [IsDomain R] [Algebra 
   simp only [galoisAction, MonoidHom.coe_comp, MulEquiv.coe_toMonoidHom, MonoidHom.coe_coe]
   exact hj.comp (mulEquivAutFiber F Ω).surjective
 
+/-- **Elements of `π₁ᵉᵗ(η)` are determined by their action on points** `Spec Ω ⟶ A`. -/
+lemma ext_of_hom_app_left {η : Spec (.of Ω) ⟶ X} {γ₁ γ₂ : π₁ᵉᵗ(η)}
+    (h : ∀ (A : FiniteEtale X) (x : (fiber η).obj A),
+      (fiberObjEquivHom η A (γ₁.hom.app A x)).left =
+        (fiberObjEquivHom η A (γ₂.hom.app A x)).left) :
+    γ₁ = γ₂ :=
+  Iso.ext (NatTrans.ext (funext fun A => FintypeCat.hom_ext _ _ fun x =>
+    (fiberObjEquivHom η A).injective (Over.OverMorphism.ext (h A x))))
+
+/-- **The Galois action only depends on the automorphism of `Ω`**: for two fields `F`, `F'`
+with points `Spec F ⟶ X`, `Spec F' ⟶ X` inducing the same geometric point `η`, automorphisms
+`g` of `Ω / F` and `g'` of `Ω / F'` with the same underlying map act in the same way. -/
+lemma galoisAction_eq_of_apply_eq {F' : Type u} [Field F'] [Algebra F' Ω] [IsGalois F' Ω]
+    (j : Spec (.of F) ⟶ X) (j' : Spec (.of F') ⟶ X) {η : Spec (.of Ω) ⟶ X}
+    (h : Spec.map (CommRingCat.ofHom (algebraMap F Ω)) ≫ j = η)
+    (h' : Spec.map (CommRingCat.ofHom (algebraMap F' Ω)) ≫ j' = η)
+    (g : Ω ≃ₐ[F] Ω) (g' : Ω ≃ₐ[F'] Ω) (hg : ∀ x, g x = g' x) :
+    galoisAction F j h g = galoisAction F' j' h' g' := by
+  refine ext_of_hom_app_left fun A x => ?_
+  rw [galoisAction_hom_app_left, galoisAction_hom_app_left]
+  have : (g : Ω →+* Ω) = (g' : Ω →+* Ω) := RingHom.ext hg
+  rw [this]
+
+lemma galoisAction_congr {j j' : Spec (.of F) ⟶ X} (hj : j = j') {η : Spec (.of Ω) ⟶ X}
+    (h : Spec.map (CommRingCat.ofHom (algebraMap F Ω)) ≫ j = η)
+    (h' : Spec.map (CommRingCat.ofHom (algebraMap F Ω)) ≫ j' = η) :
+    galoisAction F j h = galoisAction F j' h' := by
+  subst hj
+  rfl
+
 end FiniteEtale
 
 end AlgebraicGeometry

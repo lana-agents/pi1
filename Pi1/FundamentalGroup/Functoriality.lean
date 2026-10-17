@@ -136,6 +136,32 @@ lemma fundamentalGroupMap_comp (f : Y ⟶ X) (g : X ⟶ W) {ξ : Spec (.of Ω) �
     (pullbackFiberIso (f ≫ g) h) _ hcond, fiberAutMap_comp]
   rfl
 
+omit [IsSepClosed Ω] in
+lemma fundamentalGroupMap_congr {f f' : Y ⟶ X} (hf : f = f') {ξ : Spec (.of Ω) ⟶ Y}
+    {η : Spec (.of Ω) ⟶ X} (h : ξ ≫ f = η) (h' : ξ ≫ f' = η) :
+    fundamentalGroupMap f h = fundamentalGroupMap f' h' := by
+  subst hf
+  rfl
+
+omit [IsSepClosed Ω] in
+/-- `π₁ᵉᵗ` of an isomorphism is bijective. -/
+lemma fundamentalGroupMap_bijective_of_isIso (f : Y ⟶ X) [IsIso f] {ξ : Spec (.of Ω) ⟶ Y}
+    {η : Spec (.of Ω) ⟶ X} (h : ξ ≫ f = η) : Function.Bijective (fundamentalGroupMap f h) := by
+  have h2 : η ≫ inv f = ξ := by rw [← h, Category.assoc, IsIso.hom_inv_id, Category.comp_id]
+  have h3 : ξ ≫ f ≫ inv f = ξ := by rw [IsIso.hom_inv_id, Category.comp_id]
+  have h4 : η ≫ inv f ≫ f = η := by rw [IsIso.inv_hom_id, Category.comp_id]
+  have e1 (c : π₁ᵉᵗ(ξ)) : fundamentalGroupMap (inv f) h2 (fundamentalGroupMap f h c) = c := by
+    have := DFunLike.congr_fun (fundamentalGroupMap_comp f (inv f) h h2 h3) c
+    rw [fundamentalGroupMap_congr (IsIso.hom_inv_id f) h3 (Category.comp_id ξ),
+      fundamentalGroupMap_id] at this
+    exact this.symm
+  have e2 (c : π₁ᵉᵗ(η)) : fundamentalGroupMap f h (fundamentalGroupMap (inv f) h2 c) = c := by
+    have := DFunLike.congr_fun (fundamentalGroupMap_comp (inv f) f h2 h h4) c
+    rw [fundamentalGroupMap_congr (IsIso.inv_hom_id f) h4 (Category.comp_id η),
+      fundamentalGroupMap_id] at this
+    exact this.symm
+  exact ⟨Function.LeftInverse.injective e1, Function.RightInverse.surjective e2⟩
+
 end Functoriality
 
 section Connected

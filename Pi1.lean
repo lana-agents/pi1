@@ -66,6 +66,7 @@ public import Pi1.Orbifold.EtaleMathlib
 public import Pi1.Orbifold.EtaleOfAlgebra
 public import Pi1.Orbifold.EtaleProfinite
 public import Pi1.Orbifold.EtaleScheme
+public import Pi1.Orbifold.EtaleTwoCharts
 public import Pi1.Orbifold.FibreAut
 public import Pi1.Orbifold.GaloisAction
 public import Pi1.Orbifold.GaloisData
