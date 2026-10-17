@@ -87,3 +87,6 @@ public import Pi1.RingTheory.Transcendence
 public import Pi1.RingTheory.UnramifiedValuation
 public import Pi1.Surface.Basic
 public import Pi1.Surface.Profinite
+public import Pi1.Surface.ReidemeisterSchreier
+public import Pi1.Surface.SchreierCusps
+public import Pi1.Surface.SchreierTransversal
