@@ -18,7 +18,8 @@ There are `g, r` and an isomorphism `Θ : H ⧸ cuspSubgroup univ ω₀ ≃* Π_
 bijection `μ` from the `⟨x_∞⟩`-orbits on `Ω` to `Fin r` such that for every `γ ∈ F` the cusp loop
 `γ⁻¹ x_∞^m γ ∈ H` (`m` the length of the `⟨x_∞⟩`-orbit of `γ ω₀`) is sent to a conjugate of the
 cusp `c_{μ [γ ω₀]}`, and
-`2g + r + ∑ₐ #(⟨xₐ⟩-orbits) + |Ω| = |Ω| (n + 1) + 2`.
+`2g + r + ∑ₐ #(⟨xₐ⟩-orbits) + |Ω| = |Ω| (n + 1) + 2`. Filling also the cusps over `∞`
+(`exists_quotient_sup_mulEquiv_surfaceGroup_zero`) gives the closed surface group `Π_{g,0}`.
 
 Topologically (`n = 1`, `Ω` the monodromy of a Belyi map `f : X → ℙ¹` restricted to
 `ℙ¹ ∖ {0, 1, ∞}`): `π₁(X ∖ f⁻¹(∞)) ≃ Π_{g,r}` with the cusps going to the loops around the
@@ -255,5 +256,52 @@ theorem exists_quotient_cuspSubgroup_mulEquiv_surfaceGroup
     rw [← hfin]
     change Nat.card T.Gens + Nat.card Ω = Nat.card Ω * (n + 1) + 1 at hgens
     omega
+
+/-- **Filling all cusps of a covering of a punctured sphere**: the quotient of the stabiliser `H`
+of `ω₀` by the normal closure of all cusp loops (around `x₀, …, xₙ` and around `x_∞`) is the
+closed surface group `Π_{g,0}`, with `2g + r + ∑ₐ #(⟨xₐ⟩-orbits) + |Ω| = |Ω| (n + 1) + 2`,
+`r` the number of `⟨x_∞⟩`-orbits. -/
+theorem exists_quotient_sup_mulEquiv_surfaceGroup_zero
+    (htrans : ∀ ω, ∃ g : FreeGroup (Fin (n + 1)), g • ω₀ = ω) :
+    ∃ g : ℕ, Nonempty (MulAction.stabilizer (FreeGroup (Fin (n + 1))) ω₀ ⧸
+        (cuspSubgroup (Set.univ : Set (Fin (n + 1))) ω₀ ⊔ Subgroup.normalClosure
+          {h : MulAction.stabilizer (FreeGroup (Fin (n + 1))) ω₀ | ∃ γ : FreeGroup (Fin (n + 1)),
+            (h : FreeGroup (Fin (n + 1))) = γ⁻¹ * xInf n ^ perInf n (γ • ω₀) * γ}) ≃*
+          SurfaceGroup g 0) ∧
+      2 * g + Nat.card (MulAction.orbitRel.Quotient (Subgroup.zpowers (xInf n)) Ω) +
+          ∑ a : Fin (n + 1),
+            Nat.card (MulAction.orbitRel.Quotient (Subgroup.zpowers (of a)) Ω) + Nat.card Ω =
+        Nat.card Ω * (n + 1) + 2 := by
+  obtain ⟨g, r, Θ, μ, hc, hcount⟩ := exists_quotient_cuspSubgroup_mulEquiv_surfaceGroup htrans
+  refine ⟨g, ?_, by rwa [Nat.card_congr μ, Nat.card_fin]⟩
+  set N := cuspSubgroup (Set.univ : Set (Fin (n + 1))) ω₀
+  set S := {h : MulAction.stabilizer (FreeGroup (Fin (n + 1))) ω₀ | ∃ γ : FreeGroup (Fin (n + 1)),
+    (h : FreeGroup (Fin (n + 1))) = γ⁻¹ * xInf n ^ perInf n (γ • ω₀) * γ}
+  set M := Subgroup.normalClosure S
+  have hM : (N ⊔ M).map (QuotientGroup.mk' N) =
+      Subgroup.normalClosure (QuotientGroup.mk' N '' S) := by
+    rw [Subgroup.map_sup, QuotientGroup.map_mk'_self, bot_sup_eq,
+      Subgroup.map_normalClosure _ _ (QuotientGroup.mk'_surjective N)]
+  have hmap : ((N ⊔ M).map (QuotientGroup.mk' N)).map Θ.toMonoidHom =
+      Subgroup.normalClosure {x | ∃ j : Fin r, ¬ False ∧ SurfaceGroup.cusp j = x} := by
+    rw [hM, Subgroup.map_normalClosure _ _ Θ.surjective]
+    apply SurfaceGroup.normalClosure_eq_of_isConj
+    · rintro _ ⟨_, ⟨h, ⟨γ, hγ⟩, rfl⟩, rfl⟩
+      exact ⟨_, ⟨μ (Quotient.mk _ (γ • ω₀)), not_false, rfl⟩, hc h γ hγ⟩
+    · rintro _ ⟨j, -, rfl⟩
+      obtain ⟨q, rfl⟩ := μ.surjective j
+      induction q using Quotient.inductionOn with | h ω => ?_
+      obtain ⟨γ, rfl⟩ := htrans ω
+      let h : MulAction.stabilizer (FreeGroup (Fin (n + 1))) ω₀ :=
+        ⟨γ⁻¹ * xInf n ^ perInf n (γ • ω₀) * γ, by
+          rw [MulAction.mem_stabilizer_iff, mul_smul, mul_smul,
+            MulAction.pow_smul_eq_iff_minimalPeriod_dvd.2 dvd_rfl, inv_smul_smul]⟩
+      exact ⟨_, ⟨_, ⟨h, ⟨γ, rfl⟩, rfl⟩, rfl⟩, (hc h γ rfl).symm⟩
+  obtain ⟨Θ₀, -, -⟩ := SurfaceGroup.exists_quotient_normalClosure_cusp_mulEquiv (g := g)
+    (fun _ : Fin r ↦ False)
+  obtain ⟨θ, -⟩ := SurfaceGroup.exists_mulEquiv_isConj_cusp' (g := g)
+    (finCongr (show Fintype.card {j : Fin r // False} = 0 by simp))
+  exact ⟨(((QuotientGroup.quotientQuotientEquivQuotient N (N ⊔ M) le_sup_left).symm.trans
+    (QuotientGroup.congr _ _ Θ hmap)).trans Θ₀).trans θ⟩
 
 end Pi1.ReidemeisterSchreier
