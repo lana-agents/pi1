@@ -20,8 +20,9 @@ involution `ι` without fixed points (the edges) and a permutation `σ` (the cyc
 darts around each vertex). Its faces are the cycles of `φ = σ ι`; thickening the graph gives an
 oriented surface with boundary whose boundary components are the faces, and gluing discs to
 the faces gives a closed oriented surface of genus `g` with `V - E + F = 2 - 2g`
-(see e.g. Mohar–Thomassen, *Graphs on Surfaces*, §3.2–3.3, or Lando–Zvonkin, *Graphs on Surfaces
-and Their Applications*, §1.3, for this permutation description).
+(see e.g. Mohar–Thomassen, *Graphs on Surfaces*, §3.2 "Rotation systems" and §3.3 "Embedding
+schemes", or Lando–Zvonkin, *Graphs on Surfaces and Their Applications*, Ch. 1 "Constellations,
+Coverings, and Maps", for this permutation description).
 
 We fix a spanning tree and describe `π₁` of the graph as the free group `F(L)` on the non-tree
 edges (Reidemeister–Schreier): each dart carries a label `lab x ∈ {1, ℓ, ℓ⁻¹}` (`1` on tree
