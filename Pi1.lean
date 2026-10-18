@@ -76,6 +76,7 @@ public import Pi1.Orbifold.Level
 public import Pi1.Orbifold.Smooth
 public import Pi1.Profinite.Completion
 public import Pi1.Profinite.Slim
+public import Pi1.Profinite.TorsionFree
 public import Pi1.RingTheory.FiniteEtale.Basic
 public import Pi1.RingTheory.FiniteEtale.Descent
 public import Pi1.RingTheory.FiniteEtale.Equalizer
@@ -90,3 +91,4 @@ public import Pi1.Surface.Profinite
 public import Pi1.Surface.ReidemeisterSchreier
 public import Pi1.Surface.SchreierCusps
 public import Pi1.Surface.SchreierTransversal
+public import Pi1.Surface.TorsionFree
