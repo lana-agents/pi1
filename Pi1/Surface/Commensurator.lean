@@ -28,6 +28,9 @@ group of a cusp over an algebraically closed field is its inertia group); it is 
   group `Iₖ ⊆ Π̂_{g,r+2}` is commensurably terminal (move `cₖ` to `c₀` by an automorphism, up to
   conjugacy: `Pi1.SurfaceGroup.exists_mulEquiv_isConj_cusp`).
 
+* `Pi1.SurfaceGroup.inertia_inf_conj_eq_bot'`: for at least three cusps, `Iᵢ ∩ σ Iⱼ σ⁻¹ = 1`
+  for **all** `i ≠ j` (move `cᵢ, cⱼ` to `c₀, c₁`).
+
 The once-punctured case `Π̂_{g,1}` (whose cusp is a product of commutators) is not covered.
 -/
 
@@ -88,6 +91,20 @@ lemma comap_topologicalClosure_zpowers [IsTopologicalGroup K'] [IsTopologicalGro
     exact hn
   · rintro ⟨n, rfl⟩
     exact ⟨n, (map_zpow f x n).symm⟩
+
+/-- If `y` lies in `⟨w x w⁻¹⟩‾`, then `w⁻¹ y w` lies in `⟨x⟩‾`. -/
+lemma conj_mem_topologicalClosure_zpowers [IsTopologicalGroup K'] {w x y : K'}
+    (hy : y ∈ (Subgroup.zpowers (w * x * w⁻¹)).topologicalClosure) :
+    w⁻¹ * y * w ∈ (Subgroup.zpowers x).topologicalClosure := by
+  have hle : (Subgroup.zpowers (w * x * w⁻¹)).topologicalClosure ≤
+      ((Subgroup.zpowers x).topologicalClosure).comap (MulAut.conj w⁻¹).toMonoidHom := by
+    refine Subgroup.topologicalClosure_minimal _ ?_ ?_
+    · rw [Subgroup.zpowers_le, Subgroup.mem_comap]
+      refine Subgroup.le_topologicalClosure _ ?_
+      simp [mul_assoc]
+    · exact (Subgroup.isClosed_topologicalClosure _).preimage
+        (by change Continuous fun y ↦ w⁻¹ * y * w⁻¹⁻¹; fun_prop)
+  simpa using hle hy
 
 end Transport
 
@@ -157,6 +174,76 @@ theorem commensurator_inertia {r : ℕ} (k : Fin (r + 2)) :
   rw [hI, commensurator_comap]
   congr 1
   exact commensurator_inertia_castSucc (g := g) (r := r + 1) 0
+
+/-- **Distinct cuspidal inertia groups of `Π̂_{g,r+3}` meet trivially**, also after
+conjugation. -/
+theorem inertia_inf_conj_eq_bot' {r : ℕ} {i j : Fin (r + 3)} (hij : i ≠ j)
+    (σ : ProfiniteSurfaceGroup g (r + 3)) :
+    inertia (g := g) i ⊓ (ConjAct.toConjAct σ • inertia (g := g) j) = ⊥ := by
+  -- a permutation sending `i ↦ 0`, `j ↦ 1`
+  set π : Equiv.Perm (Fin (r + 3)) := Equiv.swap (Equiv.swap i 0 j) 1 * Equiv.swap i 0
+  have hj0 : Equiv.swap i 0 j ≠ 0 := by
+    intro h
+    exact hij ((Equiv.swap_apply_eq_iff.1 h).trans (Equiv.swap_apply_right i 0)).symm
+  have hπi : π i = 0 := by
+    simp only [π, Equiv.Perm.mul_apply, Equiv.swap_apply_left]
+    exact Equiv.swap_apply_of_ne_of_ne hj0.symm (by simp)
+  have hπj : π j = 1 := by
+    simp only [π, Equiv.Perm.mul_apply, Equiv.swap_apply_left]
+  obtain ⟨θ, hθ⟩ := exists_mulEquiv_isConj_cusp (g := g) π
+  obtain ⟨c, hc⟩ := isConj_iff.1 (hθ i)
+  obtain ⟨d, hd⟩ := isConj_iff.1 (hθ j)
+  rw [hπi] at hc
+  rw [hπj] at hd
+  set E := completionCongr θ
+  set η := etaFn (GrpCat.of (SurfaceGroup g (r + 3)))
+  have hE : ∀ x, E (η x) = η (θ x) := fun x ↦ by
+    simp only [E, η, completionCongr_apply, completionMap_eta, MulEquiv.coe_toMonoidHom]
+  have hηc : ∀ (c : SurfaceGroup g (r + 3)) (x : SurfaceGroup g (r + 3)),
+      η (c⁻¹ * x * c) = (η c)⁻¹ * η x * (η c)⁻¹⁻¹ := fun c x ↦ by
+    change (eta (GrpCat.of (SurfaceGroup g (r + 3)))).hom (c⁻¹ * x * c) = _
+    simp only [map_mul, map_inv, inv_inv]
+    rfl
+  -- `E(Iₖ) = ⟨E(η cₖ)⟩‾`
+  have hIE : ∀ k, inertia (g := g) k =
+      ((Subgroup.zpowers (E (η (cusp k)))).topologicalClosure).comap E.toMulEquiv.toMonoidHom :=
+    fun k ↦ (comap_topologicalClosure_zpowers E _).symm
+  refine (Subgroup.eq_bot_iff_forall _).2 fun z hz ↦ ?_
+  obtain ⟨hzi, hzj⟩ := Subgroup.mem_inf.1 hz
+  rw [Subgroup.mem_pointwise_smul_iff_inv_smul_mem, ConjAct.smul_def, ConjAct.ofConjAct_inv,
+    ConjAct.ofConjAct_toConjAct, inv_inv] at hzj
+  have hzi' : E z ∈ (Subgroup.zpowers (E (η (cusp i)))).topologicalClosure := by
+    rw [hIE] at hzi
+    exact hzi
+  have hzj' : E (σ⁻¹ * z * σ) ∈ (Subgroup.zpowers (E (η (cusp j)))).topologicalClosure := by
+    rw [hIE] at hzj
+    exact hzj
+  rw [hE, show θ (cusp i) = c⁻¹ * cusp 0 * c by rw [← hc]; group, hηc] at hzi'
+  rw [hE, show θ (cusp j) = d⁻¹ * cusp 1 * d by rw [← hd]; group, hηc] at hzj'
+  have hv := conj_mem_topologicalClosure_zpowers hzi'
+  have hw := conj_mem_topologicalClosure_zpowers hzj'
+  simp only [inv_inv] at hv hw
+  set v := η c * E z * (η c)⁻¹
+  set τ := η c * E σ * (η d)⁻¹
+  have h0 : (0 : Fin (r + 3)) = (0 : Fin (r + 2)).castSucc := rfl
+  have h1 : (1 : Fin (r + 3)) = (1 : Fin (r + 2)).castSucc := by simp
+  have hbot := inertia_inf_conj_eq_bot (g := g) (r := r + 2) (i := 0) (j := 1)
+    (by simp) τ
+  have hvmem : v ∈ inertia (g := g) (0 : Fin (r + 2)).castSucc ⊓
+      (ConjAct.toConjAct τ • inertia (g := g) (1 : Fin (r + 2)).castSucc) := by
+    refine Subgroup.mem_inf.2 ⟨by rw [← h0]; exact hv, ?_⟩
+    rw [Subgroup.mem_pointwise_smul_iff_inv_smul_mem, ConjAct.smul_def, ConjAct.ofConjAct_inv,
+      ConjAct.ofConjAct_toConjAct, inv_inv, ← h1]
+    change _ ∈ (Subgroup.zpowers (η (cusp 1))).topologicalClosure
+    convert hw using 1
+    simp only [v, τ, map_mul, map_inv]
+    group
+  rw [hbot, Subgroup.mem_bot] at hvmem
+  have hEz : E z = 1 := by
+    have : E z = (η c)⁻¹ * v * η c := by simp only [v]; group
+    rw [this, hvmem]
+    group
+  exact E.injective (hEz.trans (map_one E).symm)
 
 end SurfaceGroup
 
