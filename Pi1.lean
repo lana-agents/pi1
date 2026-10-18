@@ -75,6 +75,7 @@ public import Pi1.Orbifold.GaloisData
 public import Pi1.Orbifold.Induced
 public import Pi1.Orbifold.Level
 public import Pi1.Orbifold.Smooth
+public import Pi1.Profinite.Commensurator
 public import Pi1.Profinite.Completion
 public import Pi1.Profinite.Slim
 public import Pi1.Profinite.TorsionFree
@@ -88,6 +89,7 @@ public import Pi1.RingTheory.Smooth.StandardSmoothSmooth
 public import Pi1.RingTheory.Transcendence
 public import Pi1.RingTheory.UnramifiedValuation
 public import Pi1.Surface.Basic
+public import Pi1.Surface.Commensurator
 public import Pi1.Surface.CuspPerm
 public import Pi1.Surface.CycleWord
 public import Pi1.Surface.Profinite
