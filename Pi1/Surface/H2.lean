@@ -438,6 +438,24 @@ theorem nontrivial_h2 [Finite M] [Nontrivial M] (hg : 0 < g)
     Nontrivial (H2lc (ProfiniteSurfaceGroup g 0) M) :=
   (h2Equiv hg htriv).toEquiv.nontrivial
 
+/-- The trivial action of a group on a commutative group. -/
+abbrev trivialAction (G M : Type*) [Group G] [CommGroup M] : MulDistribMulAction G M where
+  smul _ m := m
+  one_smul _ := rfl
+  mul_smul _ _ _ := rfl
+  smul_mul _ _ _ := rfl
+  smul_one _ := rfl
+
+omit [MulDistribMulAction (ProfiniteSurfaceGroup g 0) M] in
+/-- **`H²(G, M) ≅ M` for every topological group `G ≃ₜ* Π̂_{g,0}`** (`g ≥ 1`, `M` finite with
+trivial action), e.g. the geometric fundamental group `Δ_X` of a proper curve of genus `g ≥ 1` in
+characteristic `0`, with coefficients `μ_n`. -/
+noncomputable def h2EquivOfContinuousMulEquiv {G : Type*} [Group G] [TopologicalSpace G]
+    [Finite M] (hg : 0 < g) (e : G ≃ₜ* ProfiniteSurfaceGroup g 0) [MulDistribMulAction G M]
+    (htriv : ∀ (γ : G) (m : M), γ • m = m) : H2lc G M ≃* M :=
+  letI := trivialAction (ProfiniteSurfaceGroup g 0) M
+  (H2lc.congr e fun γ m ↦ (htriv γ m).symm).trans (h2Equiv hg fun _ _ ↦ rfl)
+
 end SurfaceGroup
 
 end Pi1

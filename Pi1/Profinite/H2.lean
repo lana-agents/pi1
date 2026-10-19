@@ -39,6 +39,8 @@ For a *trivial* action we work with the **twisted product** `Twist f = M ×_f G`
 * `Twist.isCoboundary_of_section`: if `s : G → Twist f̄` is a continuous homomorphism lifting a
   finite quotient map `G → Q` (for `f = f̄ ∘ (q × q)`), then `f` is a coboundary of a locally
   constant cochain.
+* `H2lc.comap`, `H2lc.congr`: functoriality for continuous homomorphisms compatible with the
+  actions, and transport along isomorphisms of topological groups.
 * `H2lc.mem_coboundaries_of_hasFiniteLifts`, `H2lc.subsingleton_of_hasFiniteLifts`: if `G` is
   compact, totally disconnected and has finite lifts (finite embedding problems are solvable),
   then `H²(G, M) = 0` for every finite `M` with trivial action. In particular
@@ -433,5 +435,70 @@ theorem H2lc.subsingleton_of_isOpen_freeHat {α : Type u} (H : Subgroup (FreeHat
   haveI : CompactSpace H := isCompact_iff_compactSpace.1
     (Subgroup.isClosed_of_isOpen H hH).isCompact
   H2lc.subsingleton_of_hasFiniteLifts (FreeHat.hasFiniteLifts_of_isOpen α H hH) htriv
+
+namespace H2lc
+
+/-! ### Transport along isomorphisms -/
+
+section Congr
+
+variable {G G' M : Type*} [Group G] [TopologicalSpace G] [Group G'] [TopologicalSpace G']
+  [CommGroup M]
+
+/-- Pull back locally constant cocycles along a continuous homomorphism compatible with the
+actions (`φ g • m = g • m`). -/
+def cocyclesComap [MulDistribMulAction G M] [MulDistribMulAction G' M] (φ : G →* G')
+    (hφ : Continuous φ) (hact : ∀ (g : G) (m : M), φ g • m = g • m) :
+    cocycles G' M →* cocycles G M where
+  toFun f := ⟨f.1 ∘ Prod.map φ φ, f.2.1.comp_continuous (hφ.prodMap hφ), fun a b c ↦ by
+    have := f.2.2 (φ a) (φ b) (φ c)
+    simpa [map_mul, hact] using this⟩
+  map_one' := rfl
+  map_mul' _ _ := rfl
+
+lemma cocyclesComap_coboundaries [MulDistribMulAction G M] [MulDistribMulAction G' M]
+    (φ : G →* G') (hφ : Continuous φ) (hact : ∀ (g : G) (m : M), φ g • m = g • m)
+    {f : cocycles G' M} (hf : f ∈ coboundaries G' M) :
+    cocyclesComap φ hφ hact f ∈ coboundaries G M := by
+  obtain ⟨x, hx, hxf⟩ := hf
+  refine ⟨x ∘ φ, hx.comp_continuous hφ, ?_⟩
+  ext ⟨a, b⟩
+  change _ = f.1 (φ a, φ b)
+  rw [← hxf]
+  simp [dx, hact]
+
+/-- The map `H²(G', M) → H²(G, M)` induced by a continuous homomorphism `φ : G → G'` compatible
+with the actions. -/
+def comap [MulDistribMulAction G M] [MulDistribMulAction G' M] (φ : G →* G')
+    (hφ : Continuous φ) (hact : ∀ (g : G) (m : M), φ g • m = g • m) :
+    H2lc G' M →* H2lc G M :=
+  QuotientGroup.map _ _ (cocyclesComap φ hφ hact) fun _ hf ↦
+    cocyclesComap_coboundaries φ hφ hact hf
+
+/-- **Transport of `H²` along an isomorphism of topological groups** compatible with the
+actions. -/
+def congr [MulDistribMulAction G M] [MulDistribMulAction G' M] (e : G ≃ₜ* G')
+    (hact : ∀ (g : G) (m : M), e g • m = g • m) : H2lc G M ≃* H2lc G' M where
+  toFun := comap e.symm.toMulEquiv.toMonoidHom e.symm.continuous fun g m ↦ by
+    rw [← hact]
+    exact congrArg (· • m) (e.apply_symm_apply g)
+  invFun := comap e.toMulEquiv.toMonoidHom e.continuous hact
+  left_inv a := by
+    induction a using QuotientGroup.induction_on with | H f => ?_
+    change QuotientGroup.mk _ = QuotientGroup.mk f
+    congr 1
+    ext ⟨a, b⟩
+    exact congrArg f.1 (Prod.ext (e.symm_apply_apply a) (e.symm_apply_apply b))
+  right_inv a := by
+    induction a using QuotientGroup.induction_on with | H f => ?_
+    change QuotientGroup.mk _ = QuotientGroup.mk f
+    congr 1
+    ext ⟨a, b⟩
+    exact congrArg f.1 (Prod.ext (e.apply_symm_apply a) (e.apply_symm_apply b))
+  map_mul' := map_mul _
+
+end Congr
+
+end H2lc
 
 end Pi1.Profinite
