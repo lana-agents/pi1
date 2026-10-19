@@ -107,7 +107,7 @@ def kleinHom (hg : 0 < g) : SurfaceGroup g 0 →* DihedralGroup 2 :=
 
 /-- **`Π̂_{g,0}` does not have finite lifts for `g ≥ 1`**: the embedding problem
 `D₄ ↠ D₂` for `Π̂_{g,0} → D₂`, `a₁ ↦ r`, `b₁ ↦ s`, is not solvable. -/
-theorem not_hasFiniteLifts (hg : 0 < g) : ¬ HasFiniteLifts (ProfiniteSurfaceGroup g 0) := by
+theorem not_hasFiniteLifts (hg : 0 < g) : ¬ HasFiniteLifts.{0} (ProfiniteSurfaceGroup g 0) := by
   intro h
   obtain ⟨ψ, -, hψ⟩ := h (DihedralGroup 4) (DihedralGroup 2) dihedralRed dihedralRed_surjective
     (liftFinite (kleinHom hg)) (isOpen_liftFinite_fiber _)
@@ -127,7 +127,7 @@ theorem not_hasFiniteLifts (hg : 0 < g) : ¬ HasFiniteLifts (ProfiniteSurfaceGro
 
 /-- **No group with finite lifts is isomorphic to `Π̂_{g,0}`, `g ≥ 1`.** -/
 theorem isEmpty_continuousMulEquiv_of_hasFiniteLifts {P : Type*} [Group P] [TopologicalSpace P]
-    (hP : HasFiniteLifts P) (hg : 0 < g) : IsEmpty (P ≃ₜ* ProfiniteSurfaceGroup g 0) :=
+    (hP : HasFiniteLifts.{0} P) (hg : 0 < g) : IsEmpty (P ≃ₜ* ProfiniteSurfaceGroup g 0) :=
   ⟨fun e ↦ not_hasFiniteLifts hg (hP.of_continuousMulEquiv e)⟩
 
 /-- **No open subgroup of a group isomorphic to a free profinite group `F̂(α)` is isomorphic to
@@ -136,7 +136,7 @@ theorem isEmpty_continuousMulEquiv_of_isOpen_freeHat {α : Type*} {P : Type*} [G
     [TopologicalSpace P] (e : P ≃ₜ* FreeHat α) (H : Subgroup P) (hH : IsOpen (H : Set P))
     (hg : 0 < g) : IsEmpty (H ≃ₜ* ProfiniteSurfaceGroup g 0) :=
   isEmpty_continuousMulEquiv_of_hasFiniteLifts
-    (HasFiniteLifts.of_isOpen_of_continuousMulEquiv α e H hH) hg
+    (HasFiniteLifts.of_isOpen_of_continuousMulEquiv α e H hH : HasFiniteLifts.{0} H) hg
 
 /-- **No open subgroup of a group isomorphic to `Π̂_{g,r}` with `r ≥ 1` is isomorphic to
 `Π̂_{g',0}` with `g' ≥ 1`**: an open subgroup of the geometric fundamental group of an affine

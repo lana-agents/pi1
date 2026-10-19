@@ -78,6 +78,7 @@ public import Pi1.Orbifold.Smooth
 public import Pi1.Profinite.Commensurator
 public import Pi1.Profinite.Completion
 public import Pi1.Profinite.FiniteLifts
+public import Pi1.Profinite.H2
 public import Pi1.Profinite.Slim
 public import Pi1.Profinite.TorsionFree
 public import Pi1.RingTheory.FiniteEtale.Basic
@@ -95,6 +96,7 @@ public import Pi1.Surface.CommensuratorOne
 public import Pi1.Surface.CuspPerm
 public import Pi1.Surface.CycleWord
 public import Pi1.Surface.FiniteLifts
+public import Pi1.Surface.H2
 public import Pi1.Surface.Profinite
 public import Pi1.Surface.ReidemeisterSchreier
 public import Pi1.Surface.RibbonGraph

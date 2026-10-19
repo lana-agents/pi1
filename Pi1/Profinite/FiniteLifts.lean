@@ -43,23 +43,24 @@ pro-`c`-groups are projective by [NSW] (3.5.15). (Here [NSW] = Neukirch–Schmid
 
 open CategoryTheory ProfiniteGrp ProfiniteGrp.ProfiniteCompletion Topology
 
-universe u
+universe u v
 
 namespace Pi1.Profinite
 
 /-- **Finite embedding problems are solvable**: for every surjection `π : E ↠ A` of finite groups
 and every homomorphism `φ : P →* A` with open fibres (i.e. continuous for the discrete topology on
 `A`), there is a homomorphism `ψ : P →* E` with open fibres and `π ∘ ψ = φ`. For profinite `P`
-this is the finite form of projectivity ([NSW] (3.5.1), (3.5.5)). -/
-def HasFiniteLifts (P : Type*) [Group P] [TopologicalSpace P] : Prop :=
-  ∀ (E A : Type) [Group E] [Group A] [Finite E] (π : E →* A), Function.Surjective π →
+this is the finite form of projectivity ([NSW] (3.5.1), (3.5.5)). The universe parameter `v` is
+that of the finite groups `E`, `A`. -/
+def HasFiniteLifts.{v', w} (P : Type w) [Group P] [TopologicalSpace P] : Prop :=
+  ∀ (E A : Type v') [Group E] [Group A] [Finite E] (π : E →* A), Function.Surjective π →
     ∀ φ : P →* A, (∀ a, IsOpen (φ ⁻¹' {a})) →
       ∃ ψ : P →* E, (∀ e, IsOpen (ψ ⁻¹' {e})) ∧ π.comp ψ = φ
 
 /-- Finite lifts are transported along isomorphisms that are continuous in both directions. -/
 theorem HasFiniteLifts.of_mulEquiv {P Q : Type*} [Group P] [TopologicalSpace P] [Group Q]
-    [TopologicalSpace Q] (hP : HasFiniteLifts P) (e : P ≃* Q) (he : Continuous e)
-    (he' : Continuous e.symm) : HasFiniteLifts Q := by
+    [TopologicalSpace Q] (hP : HasFiniteLifts.{v} P) (e : P ≃* Q) (he : Continuous e)
+    (he' : Continuous e.symm) : HasFiniteLifts.{v} Q := by
   intro E A _ _ _ π hπ φ hφ
   obtain ⟨ψ, hψ, hψφ⟩ := hP E A π hπ (φ.comp e.toMonoidHom) fun a ↦ (hφ a).preimage he
   refine ⟨ψ.comp e.symm.toMonoidHom, fun x ↦ (hψ x).preimage he', ?_⟩
@@ -69,7 +70,8 @@ theorem HasFiniteLifts.of_mulEquiv {P Q : Type*} [Group P] [TopologicalSpace P] 
 
 /-- Finite lifts are transported along isomorphisms of topological groups. -/
 theorem HasFiniteLifts.of_continuousMulEquiv {P Q : Type*} [Group P] [TopologicalSpace P]
-    [Group Q] [TopologicalSpace Q] (hP : HasFiniteLifts P) (e : P ≃ₜ* Q) : HasFiniteLifts Q :=
+    [Group Q] [TopologicalSpace Q] (hP : HasFiniteLifts.{v} P) (e : P ≃ₜ* Q) :
+    HasFiniteLifts.{v} Q :=
   hP.of_mulEquiv e.toMulEquiv e.continuous e.symm.continuous
 
 variable (α : Type u)
@@ -77,7 +79,7 @@ variable (α : Type u)
 /-- **Open subgroups of `F̂(α)` have finite lifts** (finite embedding problems for them are
 solvable). -/
 theorem FreeHat.hasFiniteLifts_of_isOpen (H : Subgroup (FreeHat α))
-    (hH : IsOpen (H : Set (FreeHat α))) : HasFiniteLifts H := by
+    (hH : IsOpen (H : Set (FreeHat α))) : HasFiniteLifts.{v} H := by
   classical
   intro E A _ _ _ π hπ φ hφ
   set G := FreeGroup α
@@ -171,7 +173,8 @@ theorem FreeHat.hasFiniteLifts_of_isOpen (H : Subgroup (FreeHat α))
 
 /-- **Open subgroups of a group isomorphic to `F̂(α)` have finite lifts.** -/
 theorem HasFiniteLifts.of_isOpen_of_continuousMulEquiv {P : Type*} [Group P] [TopologicalSpace P]
-    (e : P ≃ₜ* FreeHat α) (H : Subgroup P) (hH : IsOpen (H : Set P)) : HasFiniteLifts H := by
+    (e : P ≃ₜ* FreeHat α) (H : Subgroup P) (hH : IsOpen (H : Set P)) :
+    HasFiniteLifts.{v} H := by
   have hH' :
       IsOpen ((H.map e.toMulEquiv.toMonoidHom : Subgroup (FreeHat α)) : Set (FreeHat α)) := by
     rw [Subgroup.coe_map]
