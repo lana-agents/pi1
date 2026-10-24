@@ -41,7 +41,8 @@ and
 The cup product is bimultiplicative (`cupClass_mul_left`, `cupClass_mul_right`,
 `cupClass_pow_left`), natural for continuous homomorphisms (`H2lc.comap_cupClass`, in
 particular transport along `≃ₜ*`), natural in the coefficients (`cupFun_map`), and compatible
-with reduction `ℤ/n → ℤ/d` for `d ∣ n` (`cupClass_castHom`). Everything is universe polymorphic in `G` and `M`.
+with reduction `ℤ/n → ℤ/d` for `d ∣ n` (`cupClass_castHom`). Everything is universe polymorphic
+in `G` and `M`.
 
 Background: a pro-`p` group is a Demuškin group if `dim H¹(G, 𝔽_p) < ∞`, `dim H²(G, 𝔽_p) = 1` and
 the cup product `H¹ × H¹ → H²` is non-degenerate ([NSW] (3.9.9)); the pro-`p` completion of the
