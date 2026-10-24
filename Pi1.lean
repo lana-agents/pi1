@@ -94,6 +94,7 @@ public import Pi1.Surface.Basic
 public import Pi1.Surface.Commensurator
 public import Pi1.Surface.CommensuratorOne
 public import Pi1.Surface.Cup
+public import Pi1.Surface.CuspOrder
 public import Pi1.Surface.CuspPerm
 public import Pi1.Surface.CycleWord
 public import Pi1.Surface.FiniteLifts
