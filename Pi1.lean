@@ -101,6 +101,7 @@ public import Pi1.Surface.CuspPerm
 public import Pi1.Surface.CycleWord
 public import Pi1.Surface.FiniteLifts
 public import Pi1.Surface.H2
+public import Pi1.Surface.ProSigma
 public import Pi1.Surface.Profinite
 public import Pi1.Surface.ReidemeisterSchreier
 public import Pi1.Surface.RibbonGraph
