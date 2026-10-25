@@ -109,5 +109,6 @@ public import Pi1.Surface.SchreierCusps
 public import Pi1.Surface.SchreierRibbon
 public import Pi1.Surface.SchreierSurface
 public import Pi1.Surface.SchreierTransversal
+public import Pi1.Surface.SlimProSigma
 public import Pi1.Surface.SurfaceMoves
 public import Pi1.Surface.TorsionFree
