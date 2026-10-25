@@ -99,6 +99,7 @@ public import Pi1.Surface.Cup
 public import Pi1.Surface.CuspOrder
 public import Pi1.Surface.CuspPerm
 public import Pi1.Surface.CycleWord
+public import Pi1.Surface.EstrangedProSigma
 public import Pi1.Surface.FiniteLifts
 public import Pi1.Surface.H2
 public import Pi1.Surface.ProSigma
