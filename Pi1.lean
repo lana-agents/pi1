@@ -79,6 +79,7 @@ public import Pi1.Profinite.Commensurator
 public import Pi1.Profinite.Completion
 public import Pi1.Profinite.FiniteLifts
 public import Pi1.Profinite.H2
+public import Pi1.Profinite.SigmaIndex
 public import Pi1.Profinite.Slim
 public import Pi1.Profinite.TorsionFree
 public import Pi1.RingTheory.FiniteEtale.Basic
