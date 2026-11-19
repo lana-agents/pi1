@@ -164,5 +164,9 @@ alignment:
       module: "Pi1/Orbicurve/Elliptic.lean"
       status: "stated"
       note: "Statement only; AffOrbicurve.canLift27_of_complex reduces it to ℂ."
+    - source: "Stabilizers of the punctured hemi-elliptic orbicurve (E ∖ {0}) / {±1}: order 2 exactly over the x-coordinates of E[2] ∖ {0}"
+      lean: "AffOrbicurve.hemi_mult_eq"
+      module: "Pi1/Orbicurve/EllipticRamification.lean"
+      status: "proved"
 
 acknowledgements: "Built on Mathlib (Apache-2.0)."

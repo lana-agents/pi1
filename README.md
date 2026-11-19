@@ -63,6 +63,10 @@ listed is proved without `sorry`.
   Prop. 2.7 (`Elliptic.lean`). They are **statements only** in this repository.
   `AffOrbicurve.canLift27_of_complex` (Lefschetz principle) proves `CanLift27` over every field of
   characteristic `0` from the statement over `ℂ`.
+* The stabilizers of `AffOrbicurve.hemi E`: the stabilizer order at a closed point `v` of the
+  `x`-line is `2` if `v` divides the 2-torsion polynomial `ψ` and `1` otherwise, i.e.
+  `E ∖ {0} → 𝔸¹` ramifies exactly over the images of `E[2] ∖ {0}`
+  (`AffOrbicurve.hemi_mult_eq`, `EllipticRamification.lean`).
 * Galois-theoretic fundamental groups `GaloisPi1.pi1` (`GaloisPi1.lean`), inertia groups of
   valuation subrings and their surjectivity in towers (`ValuationInertia.lean`).
 * Étaleness via inertia (`AffOrbicurve.etale_iff_inertia`), cyclicity of tame inertia
