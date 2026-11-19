@@ -24,7 +24,7 @@ function field `k(E) = k(x, y)`.
   a closed point `v` of `A¹` is the order of the stabilizer of a point of `X` over `v`, i.e.
   the ramification index `e(w | v)` of the double cover `X → A¹` at any `w | v`
   (`Ideal.ramificationIdxIn`); it is `2` at the three points `x(P)`, `P ∈ E[2] ∖ {0}`, and `1`
-  elsewhere.
+  elsewhere (`AffOrbicurve.hemi_mult_eq` in `Pi1.Orbicurve.EllipticRamification`).
 * `AffOrbicurve.excJ`: the four exceptional `j`-invariants
   `0, 1728, 2¹⁴·31³/5³, 2²·73³/3⁴`. By [CanLift], Proposition 2.7 there are exactly four
   isomorphism classes of arithmetic punctured hemi-elliptic orbicurves over an algebraically

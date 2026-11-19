@@ -44,6 +44,7 @@ public import Pi1.Orbicurve.CoreCriterion
 public import Pi1.Orbicurve.Descent
 public import Pi1.Orbicurve.Elliptic
 public import Pi1.Orbicurve.EllipticArith
+public import Pi1.Orbicurve.EllipticRamification
 public import Pi1.Orbicurve.EllipticSubfield
 public import Pi1.Orbicurve.Embed
 public import Pi1.Orbicurve.EmbedComplex
